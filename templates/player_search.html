@@ -474,17 +474,15 @@
                 const playerPosition = player.getAttribute('data-position');
                 const playerTeam = player.getAttribute('data-team');
 
-                // Check if the player matches the selected position and team
-                if ((selectedPosition && playerPosition !== selectedPosition) ||
-                    (selectedTeam && playerTeam !== selectedTeam)) {
-                    player.style.display = 'none'; // Hide players that don't match
+                if ((selectedPosition && playerPosition !== selectedPosition && selectedPosition !== 'All Positions') ||
+                    (selectedTeam && playerTeam !== selectedTeam && selectedTeam !== 'All Teams')) {
+                    player.style.display = 'none';
                 } else {
-                    player.style.display = 'list-item'; // Show players that match
+                    player.style.display = 'list-item';
                 }
             });
         }
 
-        // Call the filter function when the page loads
         window.onload = filterPlayers;
 
         function action1() {
