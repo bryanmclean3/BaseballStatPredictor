@@ -38,6 +38,8 @@ def get_player_information(player_list):
 # send player search results to UI
 def player_search(request):
     query = request.GET.get('q', '')
+    position = request.GET.get('position', '')
+    team = request.GET.get('team', '')
     players = []
 
     if query:
@@ -156,13 +158,17 @@ def player_stat_prediction(player_id):
         encoder = OneHotEncoder(handle_unknown='ignore')
         X_encoded = encoder.fit_transform(X_train.values.reshape(-1, 1)).toarray()
 
-        next_opponent = sa.schedule(team=playername[0]['currentTeam']['id'], start_date=today,
-                                    end_date=two_hundred_days_away)
+        schedule = sa.schedule(team=playername[0]['currentTeam']['id'], start_date=today,
+                               end_date=two_hundred_days_away)
 
-        if playername[0]['currentTeam']['id'] == next_opponent[0]['away_id']:
-            next_opponent = next_opponent[0]['home_name']
+        filtered_opponents = [game for game in schedule if game['game_type'] in allowed_game_types]
+
+        next_opponent = filtered_opponents[0]
+
+        if playername[0]['currentTeam']['id'] == next_opponent['away_id']:
+            next_opponent = next_opponent['home_name']
         else:
-            next_opponent = next_opponent[0]['away_name']
+            next_opponent = next_opponent['away_name']
 
         ridge = Ridge(alpha=1)
 
@@ -196,13 +202,17 @@ def player_stat_prediction(player_id):
         encoder = OneHotEncoder(handle_unknown='ignore')
         X_encoded = encoder.fit_transform(X_train.values.reshape(-1, 1)).toarray()
 
-        next_opponent = sa.schedule(team=playername[0]['currentTeam']['id'], start_date=today,
-                                    end_date=two_hundred_days_away)
+        schedule = sa.schedule(team=playername[0]['currentTeam']['id'], start_date=today,
+                               end_date=two_hundred_days_away)
 
-        if playername[0]['currentTeam']['id'] == next_opponent[0]['away_id']:
-            next_opponent = next_opponent[0]['home_name']
+        filtered_opponents = [game for game in schedule if game['game_type'] in allowed_game_types]
+
+        next_opponent = filtered_opponents[0]
+
+        if playername[0]['currentTeam']['id'] == next_opponent['away_id']:
+            next_opponent = next_opponent['home_name']
         else:
-            next_opponent = next_opponent[0]['away_name']
+            next_opponent = next_opponent['away_name']
 
         ridge = Ridge(alpha=1)
 

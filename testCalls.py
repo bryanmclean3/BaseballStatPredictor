@@ -1,12 +1,28 @@
 import statsapi as sa
-from datetime import date
+from datetime import date, timedelta
 import pandas as pd
 
 today = date.today().strftime("%Y-%m-%d")
 
 # Get Aaron Judge season stats
-playername = sa.lookup_player('Aaron Judge')
+playername = sa.lookup_player('paul gold')
 player = sa.player_stat_data(playername[0]['id'], 'hitting', 'season')
+
+two_hundred_days_away = (date.today() + timedelta(days=200)).strftime("%Y-%m-%d")
+allowed_game_types = {'R', 'P', 'F', 'D', 'L', 'W', 'C', 'N'}
+
+schedule = sa.schedule(team=playername[0]['currentTeam']['id'], start_date=today,
+                                    end_date=two_hundred_days_away)
+
+filtered_opponents = [game for game in schedule if game['game_type'] in allowed_game_types]
+
+# Check if any opponents match the allowed game types
+if filtered_opponents:
+    next_opponent = filtered_opponents[0]
+    print(next_opponent)
+else:
+    print("No upcoming games with allowed game types found.")
+
 
 # print(player['stats'][0]['stats']['homeRuns'])
 
@@ -43,8 +59,8 @@ for recent_game in last_5_games:
 # ----------------------------------------------------------------------------------
 
 # Get the list of matchups for Tuesday, September 17th
-games = sa.schedule(start_date=today, end_date=today)
-print(type(games))
+# games = sa.schedule(start_date=today, end_date=today)
+# print(type(games))
 
 # for game in games:
 #     print("{} at {}".format(game['away_name'], game['home_name']))

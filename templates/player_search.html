@@ -238,6 +238,7 @@
             cursor: pointer;
             display: inline-block;
             text-align: center;
+            width: 200px;
         }
 
         .dropdown select {
@@ -249,6 +250,7 @@
             border-radius: 0.25rem;
             color: black;
             cursor: pointer;
+            box-sizing: border-box;
         }
 
         .dropdown select:hover {
@@ -267,39 +269,41 @@
         <button type="submit">Search</button>
     </form>
 
-<!--    <div class="dropdown-container">-->
-<!--        <div class="dropdown">-->
-<!--            <label for="positions"></label>-->
-<!--            <select name="positions" id="positions">-->
-<!--                <option value="" disabled selected>Filter Positions</option>-->
-<!--                <option value="All Positions">All Positions</option>-->
-<!--                <option value="P">P</option>-->
-<!--                <option value="C">C</option>-->
-<!--                <option value="1B">1B</option>-->
-<!--                <option value="2B">2B</option>-->
-<!--                <option value="3B">3B</option>-->
-<!--                <option value="SS">SS</option>-->
-<!--                <option value="LF">LF</option>-->
-<!--                <option value="CF">CF</option>-->
-<!--                <option value="RF">RF</option>-->
-<!--                <option value="DH">DH</option>-->
-<!--                <option value="TWP">TWP</option>-->
-<!--            </select>-->
-<!--        </div>-->
+    <div class="dropdown-container">
+        <div class="dropdown">
+            <label for="positions"></label>
+            <select name="positions" id="positions" onchange="filterPosition()">
+                <option value="" disabled selected>Filter Positions</option>
+                <option value="All Positions">All Positions</option>
+                <option value="P">P</option>
+                <option value="C">C</option>
+                <option value="1B">1B</option>
+                <option value="2B">2B</option>
+                <option value="3B">3B</option>
+                <option value="SS">SS</option>
+                <option value="LF">LF</option>
+                <option value="CF">CF</option>
+                <option value="RF">RF</option>
+                <option value="DH">DH</option>
+                <option value="TWP">TWP</option>
+            </select>
+        </div>
 
-<!--        <div class="dropdown">-->
-<!--            <label for="mlb-teams"></label>-->
-<!--            <select id="mlb-teams">-->
-<!--                <option value="" disabled selected>Filter Teams</option>-->
-<!--            </select>-->
-<!--        </div>-->
-<!--    </div>-->
+        <div class="dropdown">
+            <label for="mlb-teams"></label>
+            <select id="mlb-teams" onchange="filterTeams()">
+                <option value="" disabled selected>Filter Teams</option>
+            </select>
+        </div>
+    </div>
 
-    <ul>
+    <ul id="player-list">
         {% if query %}
             {% if players %}
                 {% for player in players %}
-                    <li>
+                    <li class="player-item"
+                        data-position="{{ player.primaryPosition }}"
+                        data-team="{{ player.teamName }}">
                         <button type="button" class="select-btn" onclick="showPopup('{{ player.fullName }}', '{{ player.primaryPosition }}', '{{ player.playerId }}', '{{ player.teamName }}')">View Predictions</button>
                         {{ player.fullName }} - {{ player.primaryPosition }} - {{ player.teamName }}
                     </li>
@@ -341,6 +345,45 @@
     </div>
 
     <script>
+        var teamlist = {
+            'All Teams': 'All Teams',
+            'Arizona Diamondbacks': 'Arizona Diamondbacks',
+            'Atlanta Braves': 'Atlanta Braves',
+            'Baltimore Orioles': 'Baltimore Orioles',
+            'Boston Red Sox': 'Boston Red Sox',
+            'Chicago Cubs': 'Chicago Cubs',
+            'Chicago White Sox': 'Chicago White Sox',
+            'Cincinnati Reds': 'Cincinnati Reds',
+            'Cleveland Guardians': 'Cleveland Guardians',
+            'Colorado Rockies': 'Colorado Rockies',
+            'Detroit Tigers': 'Detroit Tigers',
+            'Houston Astros': 'Houston Astros',
+            'Kansas City Royals': 'Kansas City Royals',
+            'Los Angeles Angels': 'Los Angeles Angels',
+            'Los Angeles Dodgers': 'Los Angeles Dodgers',
+            'Miami Marlins': 'Miami Marlins',
+            'Milwaukee Brewers': 'Milwaukee Brewers',
+            'Minnesota Twins': 'Minnesota Twins',
+            'New York Mets': 'New York Mets',
+            'New York Yankees': 'New York Yankees',
+            'Oakland Athletics': 'Oakland Athletics',
+            'Philadelphia Phillies': 'Philadelphia Phillies',
+            'Pittsburgh Pirates': 'Pittsburgh Pirates',
+            'San Diego Padres': 'San Diego Padres',
+            'San Francisco Giants': 'San Francisco Giants',
+            'Seattle Mariners': 'Seattle Mariners',
+            'St. Louis Cardinals': 'St. Louis Cardinals',
+            'Tampa Bay Rays': 'Tampa Bay Rays',
+            'Texas Rangers': 'Texas Rangers',
+            'Toronto Blue Jays': 'Toronto Blue Jays',
+            'Washington Nationals': 'Washington Nationals'
+        };
+
+        var select = document.getElementById("mlb-teams");
+        for (var teamName in teamlist) {
+            select.options[select.options.length] = new Option(teamlist[teamName], teamlist[teamName]);
+        }
+
         function showPopup(fullName, position, playerId, teamName) {
             var modal = document.getElementById("playerPopup");
             var loader = document.getElementById("loader");
@@ -389,44 +432,60 @@
             }
         };
 
-        // var teamlist = {
-        //     'All Teams': 'All Teams',
-        //     'Arizona Diamondbacks': 'Arizona Diamondbacks',
-        //     'Atlanta Braves': 'Atlanta Braves',
-        //     'Baltimore Orioles': 'Baltimore Orioles',
-        //     'Boston Red Sox': 'Boston Red Sox',
-        //     'Chicago Cubs': 'Chicago Cubs',
-        //     'Chicago White Sox': 'Chicago White Sox',
-        //     'Cincinnati Reds': 'Cincinnati Reds',
-        //     'Cleveland Guardians': 'Cleveland Guardians',
-        //     'Colorado Rockies': 'Colorado Rockies',
-        //     'Detroit Tigers': 'Detroit Tigers',
-        //     'Houston Astros': 'Houston Astros',
-        //     'Kansas City Royals': 'Kansas City Royals',
-        //     'Los Angeles Angels': 'Los Angeles Angels',
-        //     'Los Angeles Dodgers': 'Los Angeles Dodgers',
-        //     'Miami Marlins': 'Miami Marlins',
-        //     'Milwaukee Brewers': 'Milwaukee Brewers',
-        //     'Minnesota Twins': 'Minnesota Twins',
-        //     'New York Mets': 'New York Mets',
-        //     'New York Yankees': 'New York Yankees',
-        //     'Oakland Athletics': 'Oakland Athletics',
-        //     'Philadelphia Phillies': 'Philadelphia Phillies',
-        //     'Pittsburgh Pirates': 'Pittsburgh Pirates',
-        //     'San Diego Padres': 'San Diego Padres',
-        //     'San Francisco Giants': 'San Francisco Giants',
-        //     'Seattle Mariners': 'Seattle Mariners',
-        //     'St. Louis Cardinals': 'St. Louis Cardinals',
-        //     'Tampa Bay Rays': 'Tampa Bay Rays',
-        //     'Texas Rangers': 'Texas Rangers',
-        //     'Toronto Blue Jays': 'Toronto Blue Jays',
-        //     'Washington Nationals': 'Washington Nationals'
-        // };
-        //
-        // var select = document.getElementById("mlb-teams");
-        // for(index in teamlist) {
-        //     select.options[select.options.length] = new Option(teamlist[index], index);
-        // }
+        function filterPosition() {
+            var selectedPosition = document.getElementById("positions").value;
+            var url = new URL(window.location.href);
+
+            url.searchParams.set('position', selectedPosition);
+
+            window.location.href = url;
+        }
+
+        function filterTeams() {
+            var selectedTeam = document.getElementById("mlb-teams").value;
+            var url = new URL(window.location.href);
+
+            url.searchParams.set('team', selectedTeam);
+
+            window.location.href = url;
+        }
+
+        var urlParams = new URLSearchParams(window.location.search);
+
+        let selectedPosition = urlParams.get('position');
+        let selectedTeam = urlParams.get('team');
+
+        if (selectedPosition) {
+            document.getElementById("positions").querySelector("option[value='" + selectedPosition + "']").selected = true;
+        }
+
+        if (selectedTeam) {
+            selectedTeam = decodeURIComponent(selectedTeam);
+            document.getElementById("mlb-teams").querySelector("option[value='" + selectedTeam + "']").selected = true;
+        }
+
+        document.getElementById("positions").addEventListener('change', filterPosition);
+        document.getElementById("mlb-teams").addEventListener('change', filterTeams);
+
+        function filterPlayers() {
+            const players = document.querySelectorAll('.player-item');
+
+            players.forEach(player => {
+                const playerPosition = player.getAttribute('data-position');
+                const playerTeam = player.getAttribute('data-team');
+
+                // Check if the player matches the selected position and team
+                if ((selectedPosition && playerPosition !== selectedPosition) ||
+                    (selectedTeam && playerTeam !== selectedTeam)) {
+                    player.style.display = 'none'; // Hide players that don't match
+                } else {
+                    player.style.display = 'list-item'; // Show players that match
+                }
+            });
+        }
+
+        // Call the filter function when the page loads
+        window.onload = filterPlayers;
 
         function action1() {
             alert("Button 1 clicked!");
