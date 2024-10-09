@@ -222,16 +222,78 @@
             100% { transform: rotate(360deg); }
         }
 
+        .dropdown-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .dropdown {
+            flex: 1;
+            font-size: 11px;
+            border: 2px solid #0073e6;
+            border-radius: 7px 7px 7px 7px;
+            outline: none;
+            transition: border-color 0.3s;
+            cursor: pointer;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .dropdown select {
+            appearance: none;
+            width: 100%;
+            font-size: 11px;
+            padding: 0.675em 6em 0.675em 1em;
+            background-color: white;
+            border-radius: 0.25rem;
+            color: black;
+            cursor: pointer;
+        }
+
+        .dropdown select:hover {
+            background-color: white;
+            color: black;
+        }
+
 
     </style>
 </head>
 <body>
 <h1>Baseball Stat Predictor</h1>
     <!-- Search Bar -->
-    <form method="GET" action="{% url 'player_search' %}">
+    <form id="searchForm" method="GET" action="{% url 'player_search' %}">
         <input type="text" name="q" placeholder="Search MLB Players..." value="{{ query }}">
         <button type="submit">Search</button>
     </form>
+
+<!--    <div class="dropdown-container">-->
+<!--        <div class="dropdown">-->
+<!--            <label for="positions"></label>-->
+<!--            <select name="positions" id="positions">-->
+<!--                <option value="" disabled selected>Filter Positions</option>-->
+<!--                <option value="All Positions">All Positions</option>-->
+<!--                <option value="P">P</option>-->
+<!--                <option value="C">C</option>-->
+<!--                <option value="1B">1B</option>-->
+<!--                <option value="2B">2B</option>-->
+<!--                <option value="3B">3B</option>-->
+<!--                <option value="SS">SS</option>-->
+<!--                <option value="LF">LF</option>-->
+<!--                <option value="CF">CF</option>-->
+<!--                <option value="RF">RF</option>-->
+<!--                <option value="DH">DH</option>-->
+<!--                <option value="TWP">TWP</option>-->
+<!--            </select>-->
+<!--        </div>-->
+
+<!--        <div class="dropdown">-->
+<!--            <label for="mlb-teams"></label>-->
+<!--            <select id="mlb-teams">-->
+<!--                <option value="" disabled selected>Filter Teams</option>-->
+<!--            </select>-->
+<!--        </div>-->
+<!--    </div>-->
 
     <ul>
         {% if query %}
@@ -273,7 +335,7 @@
     <div class="mode_buttons">
         <button type="button" onclick="action1()">Login</button>
         <p class="mode_label">Prediction Competition Modes:</p>
-        <button type="button" onclick="action2()">Head To Head Mode</button>
+        <button type="button" onclick="redirect_head_to_head_mode()">Head-To-Head Mode</button>
         <button type="button" onclick="redirect_player_stat_mode()">Player Stat Mode</button>
         <button type="button" onclick="action4()">Best Player Stat Mode</button>
     </div>
@@ -327,12 +389,51 @@
             }
         };
 
+        // var teamlist = {
+        //     'All Teams': 'All Teams',
+        //     'Arizona Diamondbacks': 'Arizona Diamondbacks',
+        //     'Atlanta Braves': 'Atlanta Braves',
+        //     'Baltimore Orioles': 'Baltimore Orioles',
+        //     'Boston Red Sox': 'Boston Red Sox',
+        //     'Chicago Cubs': 'Chicago Cubs',
+        //     'Chicago White Sox': 'Chicago White Sox',
+        //     'Cincinnati Reds': 'Cincinnati Reds',
+        //     'Cleveland Guardians': 'Cleveland Guardians',
+        //     'Colorado Rockies': 'Colorado Rockies',
+        //     'Detroit Tigers': 'Detroit Tigers',
+        //     'Houston Astros': 'Houston Astros',
+        //     'Kansas City Royals': 'Kansas City Royals',
+        //     'Los Angeles Angels': 'Los Angeles Angels',
+        //     'Los Angeles Dodgers': 'Los Angeles Dodgers',
+        //     'Miami Marlins': 'Miami Marlins',
+        //     'Milwaukee Brewers': 'Milwaukee Brewers',
+        //     'Minnesota Twins': 'Minnesota Twins',
+        //     'New York Mets': 'New York Mets',
+        //     'New York Yankees': 'New York Yankees',
+        //     'Oakland Athletics': 'Oakland Athletics',
+        //     'Philadelphia Phillies': 'Philadelphia Phillies',
+        //     'Pittsburgh Pirates': 'Pittsburgh Pirates',
+        //     'San Diego Padres': 'San Diego Padres',
+        //     'San Francisco Giants': 'San Francisco Giants',
+        //     'Seattle Mariners': 'Seattle Mariners',
+        //     'St. Louis Cardinals': 'St. Louis Cardinals',
+        //     'Tampa Bay Rays': 'Tampa Bay Rays',
+        //     'Texas Rangers': 'Texas Rangers',
+        //     'Toronto Blue Jays': 'Toronto Blue Jays',
+        //     'Washington Nationals': 'Washington Nationals'
+        // };
+        //
+        // var select = document.getElementById("mlb-teams");
+        // for(index in teamlist) {
+        //     select.options[select.options.length] = new Option(teamlist[index], index);
+        // }
+
         function action1() {
             alert("Button 1 clicked!");
         }
 
-        function action2() {
-            alert("Button 2 clicked!");
+        function redirect_head_to_head_mode() {
+            window.location.href = "{% url 'head_to_head_mode' %}";
         }
 
         function redirect_player_stat_mode() {

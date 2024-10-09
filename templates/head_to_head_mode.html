@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Head-To-Head Mode</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 2px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+            text-align: left;
+            color: #0073e6;
+        }
+
+        .game-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        button {
+            padding: 10px;
+            border: none;
+            background-color: #0073e6;
+            color: white;
+            border-radius: 5px 5px 5px 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #005bb5;
+        }
+
+        .team-button {
+            margin: 0 10px;
+            padding: 10px 20px;
+            width: 250px;
+            height: 30px;
+            background-color: white;
+            color: #0073e6;
+            border: 2px solid #0073e6;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        .team-button:hover {
+            background-color: #0073e6;
+            color: white
+        }
+
+        .team-button.selected {
+            outline: 3px solid #0073e6;
+            background-color: #e0f7ff;
+        }
+
+
+        .mode_buttons {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 200px;
+            height: 100vh;
+            background-color: #0073e6;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding-top: 20px;
+        }
+
+        .mode_buttons button {
+            width: 150px;
+            height: 80px;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: white;
+            color: #0073e6;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .mode_buttons button:hover {
+            background-color: #005bb5;
+            color: white;
+        }
+
+        .mode_buttons button:first-of-type {
+            margin-bottom: 110px;
+            width: 100px;
+            height: 50px;
+        }
+
+        .mode_buttons {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Head-To-Head Mode</h1>
+
+    <div class="games-container">
+        {% if todays_games %}
+            {% for away_team, home_team in todays_games %}
+                <div class="game-container">
+                    <button type="button" class="team-button" onclick="selectTeam('{{ away_team }}', '{{ forloop.counter }}')">{{ away_team }}</button>
+                    <button type="button" class="team-button" onclick="selectTeam('{{ home_team }}', '{{ forloop.counter }}')">{{ home_team }}</button>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No Games found.</p>
+        {% endif %}
+    </div>
+
+    <div class="save-selections">
+        <button type="button" onclick="saveSelections()">Save Selections</button>
+    </div>
+
+    <div class="mode_buttons">
+        <button type="button" onclick="action1()">Login</button>
+        <p class="mode_label">Prediction Competition Modes:</p>
+        <button type="button" onclick="redirect_player_stat_mode()">Player Stat Mode</button>
+        <button type="button" onclick="action4()">Best Player Stat Mode</button>
+        <button type="button" onclick="home_button()">Home</button>
+    </div>
+
+    <script>
+        const selections = {};
+
+        function selectTeam(team, gameIndex) {
+            if (!selections[gameIndex]) {
+                selections[gameIndex] = null;
+            }
+
+            const currentGameButtons = document.querySelectorAll(`.game-container:nth-child(${gameIndex}) .team-button`);
+            currentGameButtons.forEach(button => {
+                button.classList.remove('selected');
+            });
+
+            selections[gameIndex] = team;
+
+            const selectedButton = Array.from(currentGameButtons).find(button => button.textContent === team);
+            if (selectedButton) {
+                selectedButton.classList.add('selected');
+            }
+        }
+
+        function saveSelections() {
+            alert("Game Predictions Saved:" + JSON.stringify(selections));
+        }
+
+        function redirect_player_stat_mode() {
+            window.location.href = "{% url 'player_stat_mode' %}";
+        }
+
+        function home_button() {
+            window.location.href = "{% url 'player_search' %}";
+        }
+    </script>
+
+</body>
+</html>

@@ -16,13 +16,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from BaseballStatPredictor.views import player_search, get_player_prediction, player_stat_mode, player_stat_mode_search
+from BaseballStatPredictor.views import player_search, get_player_prediction, player_stat_mode, player_stat_mode_search, head_to_head_mode
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('search/', player_search, name='player_search'),
     path('player_stat_mode/', player_stat_mode, name='player_stat_mode'),
+    path('head_to_head_mode/', head_to_head_mode, name='head_to_head_mode'),
     path('player_stat_mode_search/', player_stat_mode_search, name='player_stat_mode_search'),
     path('get_player_prediction/', get_player_prediction, name='get_player_prediction'),
-
 ]

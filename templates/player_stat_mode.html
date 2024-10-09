@@ -120,6 +120,24 @@
             position: relative;
         }
 
+        .button-container {
+            text-align: right;
+            margin-top: 20px;
+        }
+
+        .modal-content button {
+            width: 120px;
+            height: 50px;
+            padding: 10px;
+            background-color: #0073e6;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
         .close {
             color: #aaa;
             float: right;
@@ -245,7 +263,7 @@
             {% if players %}
                 {% for player in players %}
                     <li>
-                        <button type="button" class="select-btn" onclick="showPopup('{{ player.fullName }}', '{{ player.primaryPosition }}', '{{ player.playerId }}', '{{ player.teamName }}')">View Predictions</button>
+                        <button type="button" class="select-btn" onclick="showPopup('{{ player.fullName }}', '{{ player.primaryPosition }}', '{{ player.playerId }}', '{{ player.teamName }}')">Make Predictions</button>
                         {{ player.fullName }} - {{ player.primaryPosition }} - {{ player.teamName }}
                     </li>
                 {% endfor %}
@@ -262,7 +280,7 @@
             <span class="close" onclick="closePopup()">&times;</span>
             <h2 id="playerName"></h2>
             <p id="playerDetails"></p>
-            <h4>Predicted Batting Stats:</h4>
+            <h4>Predicted Stats:</h4>
             <table id="playerStats" class="stats-table">
                 <thead>
                     <tr>
@@ -272,9 +290,11 @@
                     </tr>
                 </thead>
                 <tbody>
-
                 </tbody>
             </table>
+            <div class="button-container">
+                <button type="button" onclick="save_player_predictions_button()">Save Predictions</button>
+            </div>
         </div>
     </div>
 
@@ -283,7 +303,7 @@
     <div class="mode_buttons">
         <button type="button" onclick="action1()">Login</button>
         <p class="mode_label">Prediction Competition Modes:</p>
-        <button type="button" onclick="action2()">Head To Head Mode</button>
+        <button type="button" onclick="redirect_head_to_head_mode()">Head-To-Head Mode</button>
         <button type="button" onclick="action4()">Best Player Stat Mode</button>
         <button type="button" onclick="home_button()">Home</button>
     </div>
@@ -305,10 +325,17 @@
                     const tbody = document.querySelector("#playerStats tbody");
                     tbody.innerHTML = "";
 
+                    var count = 1
                     for (const [stat, Prediction] of Object.entries(stats)) {
                         const row = document.createElement("tr");
-                        row.innerHTML = `<td>${stat}</td><td>${Prediction}</td>`;
+                        if (count == 1){
+                            row.innerHTML = `<td>${stat}</td><td>${Prediction}</td><td contenteditable="false">${Prediction}</td>`;
+
+                        } else {
+                            row.innerHTML = `<td>${stat}</td><td>${Prediction}</td><td contenteditable="true"></td>`;
+                        }
                         tbody.appendChild(row);
+                        count += 1;
                     }
 
                     modal.style.display = "block";
@@ -341,12 +368,16 @@
             alert("Button 1 clicked!");
         }
 
-        function action2() {
-            alert("Button 2 clicked!");
+        function redirect_head_to_head_mode() {
+            window.location.href = "{% url 'head_to_head_mode' %}";
         }
 
         function action4() {
             alert("Button 4 clicked!");
+        }
+
+        function save_player_predictions_button() {
+            alert("Player Predictions Saved!");
         }
 
         function home_button() {

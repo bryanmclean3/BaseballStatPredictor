@@ -13,6 +13,8 @@ from sklearn.preprocessing import OneHotEncoder
 
 # Create your views here.
 
+today = date.today().strftime("%Y-%m-%d")
+
 # make API call to get players matching search query
 def search_mlb_players(query):
     players = sa.lookup_player(query)
@@ -84,13 +86,18 @@ def fetch_batter_game_stats(game, player_id, playername):
 
     if player_stats['teamInfo']['away']['id'] == playername[0]['currentTeam']['id']:
         opponent = game['home_name']
-        game_stats = player_stats['away']['players']['ID' + str(player_id)]['stats']
+        players = player_stats['away']['players']
     else:
         opponent = game['away_name']
-        game_stats = player_stats['home']['players']['ID' + str(player_id)]['stats']
+        players = player_stats['home']['players']
 
-    if game_stats['batting']:
-        return addBattingGameStats(opponent, game_stats)
+    player_key = 'ID' + str(player_id)
+    if player_key in players:
+        game_stats = players[player_key]['stats']
+        if game_stats['batting']:
+            return addBattingGameStats(opponent, game_stats)
+    else:
+        return None
 
 
 def fetch_pitcher_game_stats(game, player_id, playername):
@@ -114,7 +121,6 @@ def fetch_pitcher_game_stats(game, player_id, playername):
 
 
 def player_stat_prediction(player_id):
-    today = date.today().strftime("%Y-%m-%d")
     two_hundred_days_away = (date.today() + timedelta(days=200)).strftime("%Y-%m-%d")
     allowed_game_types = {'R', 'P', 'F', 'D', 'L', 'W', 'C', 'N'}
     playername = sa.lookup_player(player_id)
@@ -147,15 +153,13 @@ def player_stat_prediction(player_id):
         X_train = stats_df['Opponent']
         y_train = stats_df[['Innings Pitched', 'Hits Allowed', 'Runs Allowed', 'Earned Runs', 'Home Runs Allowed', 'Walks', 'Strike Outs', 'Pitches Thrown']]
 
-        print(X_train.values)
-
-        encoder = OneHotEncoder(drop='first', handle_unknown='ignore')
+        encoder = OneHotEncoder(handle_unknown='ignore')
         X_encoded = encoder.fit_transform(X_train.values.reshape(-1, 1)).toarray()
 
         next_opponent = sa.schedule(team=playername[0]['currentTeam']['id'], start_date=today,
                                     end_date=two_hundred_days_away)
 
-        if playername[0]['currentTeam']['id'] == next_opponent[0]['away_name']:
+        if playername[0]['currentTeam']['id'] == next_opponent[0]['away_id']:
             next_opponent = next_opponent[0]['home_name']
         else:
             next_opponent = next_opponent[0]['away_name']
@@ -189,13 +193,13 @@ def player_stat_prediction(player_id):
         X_train = stats_df['Opponent']
         y_train = stats_df[['Runs', 'Hits', 'Doubles', 'Triples', 'Home Runs', 'RBIs', 'Walks', 'Strike Outs']]
 
-        encoder = OneHotEncoder(drop='first', handle_unknown='ignore')
+        encoder = OneHotEncoder(handle_unknown='ignore')
         X_encoded = encoder.fit_transform(X_train.values.reshape(-1, 1)).toarray()
 
         next_opponent = sa.schedule(team=playername[0]['currentTeam']['id'], start_date=today,
                                     end_date=two_hundred_days_away)
 
-        if playername[0]['currentTeam']['id'] == next_opponent[0]['away_name']:
+        if playername[0]['currentTeam']['id'] == next_opponent[0]['away_id']:
             next_opponent = next_opponent[0]['home_name']
         else:
             next_opponent = next_opponent[0]['away_name']
@@ -230,3 +234,17 @@ def player_stat_mode_search(request):
         players = search_mlb_players(query)
 
     return render(request, 'player_stat_mode.html', {'players': players, 'query': query})
+
+
+def get_games_today():
+    games = sa.schedule(start_date=today, end_date=today)
+    todays_games = []
+    for game in games:
+        todays_games.append((game['away_name'], game['home_name']))
+    return todays_games
+
+
+def head_to_head_mode(request):
+    todays_games = get_games_today()
+
+    return render(request, 'head_to_head_mode.html', {'todays_games': todays_games})
