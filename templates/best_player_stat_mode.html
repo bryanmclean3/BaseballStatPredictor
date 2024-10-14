@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baseball Stat Predictor</title>
+    <title>Player Stat Mode</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -73,12 +73,30 @@
             cursor: pointer;
             transition: background-color 0.3s;
             position: absolute;
-            right: 10px;
+            right: 5px;
             top: 50%;
             transform: translateY(-50%);
         }
 
         .select-btn:hover {
+            background-color: #005bb5;
+        }
+
+        .select-player-btn {
+            background-color: #0073e6;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            position: absolute;
+            right: 125px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .select-player-btn:hover {
             background-color: #005bb5;
         }
 
@@ -113,11 +131,29 @@
 
         .modal-content {
             background-color: white;
-            margin: 5% auto;
+            margin: 15% auto;
             padding: 20px;
             border: 1px solid #888;
             width: 60%;
             position: relative;
+        }
+
+        .button-container {
+            text-align: right;
+            margin-top: 20px;
+        }
+
+        .modal-content button {
+            width: 120px;
+            height: 50px;
+            padding: 10px;
+            background-color: #0073e6;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
         }
 
         .close {
@@ -194,6 +230,13 @@
             height: 50px;
         }
 
+        .mode_buttons button:last-of-type {
+            position: fixed;
+            bottom: 30px;
+            width: 100px;
+            height: 50px;
+        }
+
         .mode_buttons {
             text-align: center;
             color: white;
@@ -258,13 +301,37 @@
             color: black;
         }
 
+        .best-stats-table {
+            border-collapse: collapse;
+            top: 10px;
+            left: 10px;
+            position: fixed;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .best-stats-table button {
+            margin-top: 10px;
+            border-radius: 5px 5px 5px 5px;
+        }
+
+        .best-stats-table th, .best-stats-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .best-stats-table th {
+            background-color: #0073e6;
+            color: white;
+        }
 
     </style>
 </head>
 <body>
-<h1>Baseball Stat Predictor</h1>
-    <!-- Search Bar -->
-    <form id="searchForm" method="GET" action="{% url 'player_search' %}">
+    <h1>Best Player Stat Mode</h1>
+
+    <form method="GET" action="{% url 'best_player_stat_mode_search' %}">
         <input type="text" name="q" placeholder="Search MLB Players..." value="{{ query }}">
         <button type="submit">Search</button>
     </form>
@@ -297,6 +364,25 @@
         </div>
     </div>
 
+    <div class="best-stats-table">
+        <h4>Predicted Best Performer For Each Stat:</h4>
+            <table id="bestStats">
+                <thead>
+                    <tr>
+                        <th>Stat</th>
+                        <th>Best Player Prediction</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Hits</td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        <button type="button" onclick="save_best_stat_predictions_button()">Save Predictions</button>
+    </div>
+
     <ul id="player-list">
         {% if query %}
             {% if players %}
@@ -305,6 +391,7 @@
                         data-position="{{ player.primaryPosition }}"
                         data-team="{{ player.teamName }}">
                         <button type="button" class="select-btn" onclick="showPopup('{{ player.fullName }}', '{{ player.primaryPosition }}', '{{ player.playerId }}', '{{ player.teamName }}')">View Predictions</button>
+                        <button type="button" class="select-player-btn">Select Player</button>
                         {{ player.fullName }} - {{ player.primaryPosition }} - {{ player.teamName }}
                     </li>
                 {% endfor %}
@@ -336,12 +423,14 @@
         </div>
     </div>
 
+    <!-- New stuff for the Player Stat Mode here -->
+
     <div class="mode_buttons">
         <button type="button" onclick="action1()">Login</button>
         <p class="mode_label">Prediction Competition Modes:</p>
         <button type="button" onclick="redirect_head_to_head_mode()">Head-To-Head Mode</button>
         <button type="button" onclick="redirect_player_stat_mode()">Player Stat Mode</button>
-        <button type="button" onclick="redirect_best_player_stat_mode()">Best Player Stat Mode</button>
+        <button type="button" onclick="home_button()">Home</button>
     </div>
 
     <script>
@@ -497,13 +586,9 @@
             window.location.href = "{% url 'player_stat_mode' %}";
         }
 
-        function redirect_best_player_stat_mode() {
-            window.location.href = "{% url 'best_player_stat_mode' %}";
+        function home_button() {
+            window.location.href = "{% url 'player_search' %}";
         }
     </script>
-
 </body>
 </html>
-
-
-

@@ -38,8 +38,6 @@ def get_player_information(player_list):
 # send player search results to UI
 def player_search(request):
     query = request.GET.get('q', '')
-    position = request.GET.get('position', '')
-    team = request.GET.get('team', '')
     players = []
 
     if query:
@@ -141,7 +139,7 @@ def player_stat_prediction(player_id):
     batter_predicted_stats_dict = dict()
     pitcher_predicted_stats_dict = dict()
 
-    if playername[0]['primaryPosition']['abbreviation'] == 'P' or playername[0]['primaryPosition']['abbreviation'] == 'TWP':
+    if playername[0]['primaryPosition']['abbreviation'] == 'P':  # or playername[0]['primaryPosition']['abbreviation'] == 'TWP':
         with ThreadPoolExecutor() as executor:
             try:
                 rows = list(executor.map(lambda game: fetch_pitcher_game_stats(game, player_id, playername), prev_games))
@@ -155,33 +153,34 @@ def player_stat_prediction(player_id):
         X_train = stats_df['Opponent']
         y_train = stats_df[['Innings Pitched', 'Hits Allowed', 'Runs Allowed', 'Earned Runs', 'Home Runs Allowed', 'Walks', 'Strike Outs', 'Pitches Thrown']]
 
-        encoder = OneHotEncoder(handle_unknown='ignore')
-        X_encoded = encoder.fit_transform(X_train.values.reshape(-1, 1)).toarray()
+        if X_train.values.size != 0:
+            encoder = OneHotEncoder(handle_unknown='ignore')
+            X_encoded = encoder.fit_transform(X_train.values.reshape(-1, 1)).toarray()
 
-        schedule = sa.schedule(team=playername[0]['currentTeam']['id'], start_date=today,
-                               end_date=two_hundred_days_away)
+            schedule = sa.schedule(team=playername[0]['currentTeam']['id'], start_date=today,
+                                   end_date=two_hundred_days_away)
 
-        filtered_opponents = [game for game in schedule if game['game_type'] in allowed_game_types]
+            filtered_opponents = [game for game in schedule if game['game_type'] in allowed_game_types]
 
-        next_opponent = filtered_opponents[0]
+            next_opponent = filtered_opponents[0]
 
-        if playername[0]['currentTeam']['id'] == next_opponent['away_id']:
-            next_opponent = next_opponent['home_name']
-        else:
-            next_opponent = next_opponent['away_name']
+            if playername[0]['currentTeam']['id'] == next_opponent['away_id']:
+                next_opponent = next_opponent['home_name']
+            else:
+                next_opponent = next_opponent['away_name']
 
-        ridge = Ridge(alpha=1)
+            ridge = Ridge(alpha=1)
 
-        ridge.fit(X_encoded, y_train)
-        new_opponent = pd.DataFrame({'Opponent': [next_opponent]})
-        new_X_encoded = encoder.transform(new_opponent['Opponent'].values.reshape(-1, 1)).toarray()
-        predicted_stats = ridge.predict(new_X_encoded)
+            ridge.fit(X_encoded, y_train)
+            new_opponent = pd.DataFrame({'Opponent': [next_opponent]})
+            new_X_encoded = encoder.transform(new_opponent['Opponent'].values.reshape(-1, 1)).toarray()
+            predicted_stats = ridge.predict(new_X_encoded)
 
-        predicted_stats_list = predicted_stats.tolist()
+            predicted_stats_list = predicted_stats.tolist()
 
-        predicted_stats_list = np.around(predicted_stats_list, 4).tolist()
+            predicted_stats_list = np.around(predicted_stats_list, 4).tolist()
 
-        pitcher_predicted_stats_dict = {'Opponent': next_opponent, **dict(zip(columns[1:], predicted_stats_list[0]))}
+            pitcher_predicted_stats_dict = {'Opponent': next_opponent, **dict(zip(columns[1:], predicted_stats_list[0]))}
 
 
     elif playername[0]['primaryPosition']['abbreviation'] != 'P':
@@ -199,33 +198,34 @@ def player_stat_prediction(player_id):
         X_train = stats_df['Opponent']
         y_train = stats_df[['Runs', 'Hits', 'Doubles', 'Triples', 'Home Runs', 'RBIs', 'Walks', 'Strike Outs']]
 
-        encoder = OneHotEncoder(handle_unknown='ignore')
-        X_encoded = encoder.fit_transform(X_train.values.reshape(-1, 1)).toarray()
+        if X_train.values.size != 0:
+            encoder = OneHotEncoder(handle_unknown='ignore')
+            X_encoded = encoder.fit_transform(X_train.values.reshape(-1, 1)).toarray()
 
-        schedule = sa.schedule(team=playername[0]['currentTeam']['id'], start_date=today,
-                               end_date=two_hundred_days_away)
+            schedule = sa.schedule(team=playername[0]['currentTeam']['id'], start_date=today,
+                                   end_date=two_hundred_days_away)
 
-        filtered_opponents = [game for game in schedule if game['game_type'] in allowed_game_types]
+            filtered_opponents = [game for game in schedule if game['game_type'] in allowed_game_types]
 
-        next_opponent = filtered_opponents[0]
+            next_opponent = filtered_opponents[0]
 
-        if playername[0]['currentTeam']['id'] == next_opponent['away_id']:
-            next_opponent = next_opponent['home_name']
-        else:
-            next_opponent = next_opponent['away_name']
+            if playername[0]['currentTeam']['id'] == next_opponent['away_id']:
+                next_opponent = next_opponent['home_name']
+            else:
+                next_opponent = next_opponent['away_name']
 
-        ridge = Ridge(alpha=1)
+            ridge = Ridge(alpha=1)
 
-        ridge.fit(X_encoded, y_train)
-        new_opponent = pd.DataFrame({'Opponent': [next_opponent]})
-        new_X_encoded = encoder.transform(new_opponent['Opponent'].values.reshape(-1, 1)).toarray()
-        predicted_stats = ridge.predict(new_X_encoded)
+            ridge.fit(X_encoded, y_train)
+            new_opponent = pd.DataFrame({'Opponent': [next_opponent]})
+            new_X_encoded = encoder.transform(new_opponent['Opponent'].values.reshape(-1, 1)).toarray()
+            predicted_stats = ridge.predict(new_X_encoded)
 
-        predicted_stats_list = predicted_stats.tolist()
+            predicted_stats_list = predicted_stats.tolist()
 
-        predicted_stats_list = np.around(predicted_stats_list, 4).tolist()
+            predicted_stats_list = np.around(predicted_stats_list, 4).tolist()
 
-        batter_predicted_stats_dict = {'Opponent': next_opponent, **dict(zip(columns[1:], predicted_stats_list[0]))}
+            batter_predicted_stats_dict = {'Opponent': next_opponent, **dict(zip(columns[1:], predicted_stats_list[0]))}
 
     predicted_stats_dict = batter_predicted_stats_dict.copy()
     predicted_stats_dict.update(pitcher_predicted_stats_dict)
@@ -245,6 +245,18 @@ def player_stat_mode_search(request):
 
     return render(request, 'player_stat_mode.html', {'players': players, 'query': query})
 
+
+def best_player_stat_mode(request):
+    return render(request, 'best_player_stat_mode.html')
+
+def best_player_stat_mode_search(request):
+    query = request.GET.get('q', '')
+    players = []
+
+    if query:
+        players = search_mlb_players(query)
+
+    return render(request, 'best_player_stat_mode.html', {'players': players, 'query': query})
 
 def get_games_today():
     games = sa.schedule(start_date=today, end_date=today)
