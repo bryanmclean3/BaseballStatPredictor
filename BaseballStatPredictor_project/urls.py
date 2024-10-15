@@ -16,15 +16,19 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from BaseballStatPredictor.views import player_search, get_player_prediction, player_stat_mode, player_stat_mode_search, best_player_stat_mode_search, head_to_head_mode, best_player_stat_mode
+from BaseballStatPredictor import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('search/', player_search, name='player_search'),
-    path('player_stat_mode/', player_stat_mode, name='player_stat_mode'),
-    path('head_to_head_mode/', head_to_head_mode, name='head_to_head_mode'),
-    path('best_player_stat_mode/', best_player_stat_mode, name='best_player_stat_mode'),
-    path('player_stat_mode_search/', player_stat_mode_search, name='player_stat_mode_search'),
-    path('best_player_stat_mode_search/', best_player_stat_mode_search, name='best_player_stat_mode_search'),
-    path('get_player_prediction/', get_player_prediction, name='get_player_prediction'),
+    path('search/', views.player_search, name='player_search'),
+    path('player_stat_mode/', views.player_stat_mode, name='player_stat_mode'),
+    path('head_to_head_mode/', views.head_to_head_mode, name='head_to_head_mode'),
+    path('best_player_stat_mode/', views.best_player_stat_mode, name='best_player_stat_mode'),
+    path('player_stat_mode_search/', views.player_stat_mode_search, name='player_stat_mode_search'),
+    path('best_player_stat_mode_search/', views.best_player_stat_mode_search, name='best_player_stat_mode_search'),
+    path('get_player_prediction/', views.get_player_prediction, name='get_player_prediction'),
+    path("", views.search, name="search"),
+    path("login/", views.login, name="login"),
+    path("logout/", views.logout, name="logout"),
+    path("callback/", views.callback, name="callback"),
 ]

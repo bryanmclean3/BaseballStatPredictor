@@ -337,7 +337,11 @@
     </div>
 
     <div class="mode_buttons">
-        <button type="button" onclick="action1()">Login</button>
+        {% if session %}
+            <button type="button" onclick="redirect_logout()">Logout</button>
+        {% else %}
+            <button type="button" onclick="redirect_login()">Login</button>
+        {% endif %}
         <p class="mode_label">Prediction Competition Modes:</p>
         <button type="button" onclick="redirect_head_to_head_mode()">Head-To-Head Mode</button>
         <button type="button" onclick="redirect_player_stat_mode()">Player Stat Mode</button>
@@ -485,8 +489,12 @@
 
         window.onload = filterPlayers;
 
-        function action1() {
-            alert("Button 1 clicked!");
+        function redirect_login() {
+            window.location.href = '/login';
+        }
+
+        function redirect_logout() {
+            window.location.href = '/logout';
         }
 
         function redirect_head_to_head_mode() {

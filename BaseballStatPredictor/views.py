@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 import statsapi as sa
@@ -9,11 +8,19 @@ from datetime import date, timedelta
 from urllib.error import HTTPError
 from sklearn.linear_model import Ridge
 from sklearn.preprocessing import OneHotEncoder
-
+import json
+from authlib.integrations.django_client import OAuth
+from django.conf import settings
+from django.shortcuts import redirect, render
+from django.urls import reverse
+from urllib.parse import quote_plus, urlencode
+from django.contrib.auth.decorators import login_required
+import logging
 
 # Create your views here.
 
 today = date.today().strftime("%Y-%m-%d")
+
 
 # make API call to get players matching search query
 def search_mlb_players(query):
@@ -44,6 +51,7 @@ def player_search(request):
         players = search_mlb_players(query)
 
     return render(request, 'player_search.html', {'players': players, 'query': query})
+
 
 @require_GET
 def get_player_prediction(request):
@@ -139,19 +147,24 @@ def player_stat_prediction(player_id):
     batter_predicted_stats_dict = dict()
     pitcher_predicted_stats_dict = dict()
 
-    if playername[0]['primaryPosition']['abbreviation'] == 'P':  # or playername[0]['primaryPosition']['abbreviation'] == 'TWP':
+    if playername[0]['primaryPosition'][
+        'abbreviation'] == 'P':  # or playername[0]['primaryPosition']['abbreviation'] == 'TWP':
         with ThreadPoolExecutor() as executor:
             try:
-                rows = list(executor.map(lambda game: fetch_pitcher_game_stats(game, player_id, playername), prev_games))
+                rows = list(
+                    executor.map(lambda game: fetch_pitcher_game_stats(game, player_id, playername), prev_games))
             except HTTPError:
                 print("Error fetching")
         rows = [row for row in rows if row is not None]
 
-        columns = ['Opponent', 'Innings Pitched', 'Hits Allowed', 'Runs Allowed', 'Earned Runs', 'Home Runs Allowed', 'Walks', 'Strike Outs', 'Pitches Thrown']
+        columns = ['Opponent', 'Innings Pitched', 'Hits Allowed', 'Runs Allowed', 'Earned Runs', 'Home Runs Allowed',
+                   'Walks', 'Strike Outs', 'Pitches Thrown']
         stats_df = pd.DataFrame(rows, columns=columns)
 
         X_train = stats_df['Opponent']
-        y_train = stats_df[['Innings Pitched', 'Hits Allowed', 'Runs Allowed', 'Earned Runs', 'Home Runs Allowed', 'Walks', 'Strike Outs', 'Pitches Thrown']]
+        y_train = stats_df[
+            ['Innings Pitched', 'Hits Allowed', 'Runs Allowed', 'Earned Runs', 'Home Runs Allowed', 'Walks',
+             'Strike Outs', 'Pitches Thrown']]
 
         if X_train.values.size != 0:
             encoder = OneHotEncoder(handle_unknown='ignore')
@@ -180,7 +193,8 @@ def player_stat_prediction(player_id):
 
             predicted_stats_list = np.around(predicted_stats_list, 4).tolist()
 
-            pitcher_predicted_stats_dict = {'Opponent': next_opponent, **dict(zip(columns[1:], predicted_stats_list[0]))}
+            pitcher_predicted_stats_dict = {'Opponent': next_opponent,
+                                            **dict(zip(columns[1:], predicted_stats_list[0]))}
 
 
     elif playername[0]['primaryPosition']['abbreviation'] != 'P':
@@ -249,6 +263,7 @@ def player_stat_mode_search(request):
 def best_player_stat_mode(request):
     return render(request, 'best_player_stat_mode.html')
 
+
 def best_player_stat_mode_search(request):
     query = request.GET.get('q', '')
     players = []
@@ -257,6 +272,7 @@ def best_player_stat_mode_search(request):
         players = search_mlb_players(query)
 
     return render(request, 'best_player_stat_mode.html', {'players': players, 'query': query})
+
 
 def get_games_today():
     games = sa.schedule(start_date=today, end_date=today)
@@ -270,3 +286,65 @@ def head_to_head_mode(request):
     todays_games = get_games_today()
 
     return render(request, 'head_to_head_mode.html', {'todays_games': todays_games})
+
+
+oauth = OAuth()
+
+oauth.register(
+    "auth0",
+    client_id=settings.AUTH0_CLIENT_ID,
+    client_secret=settings.AUTH0_CLIENT_SECRET,
+    client_kwargs={
+        "scope": "openid profile email",
+    },
+    server_metadata_url=f"https://{settings.AUTH0_DOMAIN}/.well-known/openid-configuration",
+)
+
+
+def login(request):
+    callback_url = request.build_absolute_uri(reverse("callback"))
+    return oauth.auth0.authorize_redirect(request, callback_url)
+
+
+def callback(request):
+    token = oauth.auth0.authorize_access_token(request)
+    user_info_url = f"https://{settings.AUTH0_DOMAIN}/userinfo"
+
+    user_info = oauth.auth0.get(user_info_url, token=token).json()
+
+    request.session["user"] = {
+        "sub": token["id_token"],  # Can either be 'sub' or 'id_token'
+        "email": user_info.get("email"),
+        "name": user_info.get("name"),
+        "picture": user_info.get("picture"),
+    }
+
+    return redirect(request.build_absolute_uri(reverse("search")))
+
+
+def logout(request):
+    request.session.clear()
+
+    return redirect(
+        f"https://{settings.AUTH0_DOMAIN}/v2/logout?"
+        + urlencode(
+            {
+                "returnTo": request.build_absolute_uri(reverse("search")),
+                "client_id": settings.AUTH0_CLIENT_ID,
+            },
+            quote_via=quote_plus,
+        ),
+    )
+
+
+def search(request):
+    user = request.session.get("user")
+
+    return render(
+        request,
+        "player_search.html",
+        context={
+            "session": user,
+            "pretty": json.dumps(user, indent=4),
+        },
+    )
