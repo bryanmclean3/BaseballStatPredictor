@@ -1,6 +1,8 @@
 from django.db import models
 
 
-# Create your models here.
-
+class User(models.Model):
+    sub = models.CharField(unique=True)
+    name = models.CharField()
+    email = models.CharField(unique=True)
 

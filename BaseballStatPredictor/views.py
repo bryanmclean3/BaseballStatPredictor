@@ -16,6 +16,9 @@ from django.urls import reverse
 from urllib.parse import quote_plus, urlencode
 from django.contrib.auth.decorators import login_required
 import logging
+import BaseballStatPredictor.models as models
+from django.db.models import Q
+
 
 # Create your views here.
 
@@ -319,6 +322,8 @@ def callback(request):
         "picture": user_info.get("picture"),
     }
 
+    store_user(token["id_token"], user_info.get("name"), user_info.get("email"))
+
     return redirect(request.build_absolute_uri(reverse("search")))
 
 
@@ -348,3 +353,15 @@ def search(request):
             "pretty": json.dumps(user, indent=4),
         },
     )
+
+
+def store_user(sub, name, email):
+    user, created = models.User.objects.update_or_create(
+        email=email,
+        defaults={
+            'sub': sub,
+            'name': name
+        }
+    )
+
+    return user
