@@ -53,7 +53,9 @@ def player_search(request):
     if query:
         players = search_mlb_players(query)
 
-    return render(request, 'player_search.html', {'players': players, 'query': query})
+    user_email = request.session.get("user", {}).get("email")
+
+    return render(request, 'player_search.html', {'players': players, 'query': query, 'user_email': user_email})
 
 
 @require_GET
@@ -199,7 +201,6 @@ def player_stat_prediction(player_id):
             pitcher_predicted_stats_dict = {'Opponent': next_opponent,
                                             **dict(zip(columns[1:], predicted_stats_list[0]))}
 
-
     elif playername[0]['primaryPosition']['abbreviation'] != 'P':
         with ThreadPoolExecutor() as executor:
             try:
@@ -250,7 +251,9 @@ def player_stat_prediction(player_id):
 
 
 def player_stat_mode(request):
-    return render(request, 'player_stat_mode.html')
+    user_email = request.session.get("user", {}).get("email")
+
+    return render(request, 'player_stat_mode.html', {'user_email': user_email})
 
 
 def player_stat_mode_search(request):
@@ -264,7 +267,8 @@ def player_stat_mode_search(request):
 
 
 def manual_stat_prediction_mode(request):
-    return render(request, 'manual_player_stat_prediction.html')
+    user_email = request.session.get("user", {}).get("email")
+    return render(request, 'manual_player_stat_prediction.html', {'user_email': user_email})
 
 
 def get_games_today():
@@ -277,8 +281,9 @@ def get_games_today():
 
 def head_to_head_mode(request):
     todays_games = get_games_today()
+    user_email = request.session.get("user", {}).get("email")
 
-    return render(request, 'head_to_head_mode.html', {'todays_games': todays_games})
+    return render(request, 'head_to_head_mode.html', {'todays_games': todays_games, 'user_email': user_email})
 
 
 @csrf_exempt
@@ -377,7 +382,6 @@ def callback(request):
         "sub": token["id_token"],  # Can either be 'sub' or 'id_token'
         "email": user_info.get("email"),
         "name": user_info.get("name"),
-        "picture": user_info.get("picture"),
     }
 
     store_user(token["id_token"], user_info.get("name"), user_info.get("email"))
@@ -402,6 +406,7 @@ def logout(request):
 
 def search(request):
     user = request.session.get("user")
+    user_email = user.get("email") if user else None
 
     return render(
         request,
@@ -409,6 +414,7 @@ def search(request):
         context={
             "session": user,
             "pretty": json.dumps(user, indent=4),
+            "user_email": user_email,
         },
     )
 

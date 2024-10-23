@@ -366,7 +366,11 @@
     <!-- New stuff for the Player Stat Mode here -->
 
     <div class="mode_buttons">
-        <button type="button" onclick="action1()">Login</button>
+        {% if user_email %}
+            <button type="button" onclick="redirect_logout()">Logout</button>
+        {% else %}
+            <button type="button" onclick="redirect_login()">Login</button>
+        {% endif %}
         <p class="mode_label">Prediction Competition Modes:</p>
         <button type="button" onclick="redirect_head_to_head_mode()">Head-To-Head Mode</button>
         <button type="button" onclick="redirect_manual_stat_prediction_mode()">Manual Stat Prediction Mode</button>
@@ -536,8 +540,12 @@
             alert("Player Predictions Saved: " + JSON.stringify(playerPredictions, null, 2)); // Format for better readability
         }
 
-        function action1() {
-            alert("Button 1 clicked!");
+        function redirect_login() {
+            window.location.href = '/login';
+        }
+
+        function redirect_logout() {
+            window.location.href = '/logout';
         }
 
         function redirect_head_to_head_mode() {

@@ -337,7 +337,7 @@
     </div>
 
     <div class="mode_buttons">
-        {% if session %}
+        {% if user_email %}
             <button type="button" onclick="redirect_logout()">Logout</button>
         {% else %}
             <button type="button" onclick="redirect_login()">Login</button>

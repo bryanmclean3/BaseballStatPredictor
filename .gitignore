@@ -4,3 +4,4 @@ settings.py
 db.sqlite3
 *.pyc
 BaseballStatPredictor\__pycache__\
+/BaseballStatPredictor_project/__pycache__

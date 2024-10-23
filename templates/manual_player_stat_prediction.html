@@ -383,7 +383,11 @@
 
 
     <div class="mode_buttons">
-        <button type="button" onclick="action1()">Login</button>
+        {% if user_email %}
+            <button type="button" onclick="redirect_logout()">Logout</button>
+        {% else %}
+            <button type="button" onclick="redirect_login()">Login</button>
+        {% endif %}
         <p class="mode_label">Prediction Competition Modes:</p>
         <button type="button" onclick="redirect_head_to_head_mode()">Head-To-Head Mode</button>
         <button type="button" onclick="redirect_player_stat_mode()">Player Stat Mode</button>
@@ -425,6 +429,7 @@
                     const stats = data.stats;
                     const tbody = document.querySelector("#playerStats tbody");
                     tbody.innerHTML = "";
+                    console.log(stats)
 
                     for (const [stat, Prediction] of Object.entries(stats)) {
                         const row = document.createElement("tr");
@@ -469,19 +474,21 @@
                 },
                 body: JSON.stringify({ stats: matrix, nextOpponent: nextOpponent })
             })
+            .then(response => response.json())
             .then(data => {
-                    const stats = data.stats;
-                    const tbody = document.querySelector("#playerStats tbody");
-                    tbody.innerHTML = "";
+                const stats = data.stats;
+                const tbody = document.querySelector("#playerStats tbody");
+                tbody.innerHTML = "";
+                console.log(stats)
 
-                    for (const [stat, Prediction] of Object.entries(stats)) {
-                        const row = document.createElement("tr");
-                        row.innerHTML = `<td>${stat}</td><td>${Prediction}</td>`;
-                        tbody.appendChild(row);
-                    }
+                for (const [stat, Prediction] of Object.entries(stats)) {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `<td>${stat}</td><td>${Prediction}</td>`;
+                    tbody.appendChild(row);
+                }
 
-                    modal.style.display = "block";
-                })
+                modal.style.display = "block";
+            })
             .catch(error => console.error('Error fetching player stats:', error))
             .finally(() => {
                 loader.style.display = "none";
@@ -543,8 +550,12 @@
             tbody.appendChild(row);
         }
 
-        function action1() {
-            alert("Button 1 clicked!");
+        function redirect_login() {
+            window.location.href = '/login';
+        }
+
+        function redirect_logout() {
+            window.location.href = '/logout';
         }
 
         function redirect_head_to_head_mode() {
