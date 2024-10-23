@@ -321,7 +321,7 @@
             <span class="close" onclick="closePopup()">&times;</span>
             <h2 id="playerName"></h2>
             <p id="playerDetails"></p>
-            <h4>Predicted Batting Stats:</h4>
+            <h4>Predicted Stats:</h4>
             <table id="playerStats" class="stats-table">
                 <thead>
                     <tr>
@@ -345,7 +345,7 @@
         <p class="mode_label">Prediction Competition Modes:</p>
         <button type="button" onclick="redirect_head_to_head_mode()">Head-To-Head Mode</button>
         <button type="button" onclick="redirect_player_stat_mode()">Player Stat Mode</button>
-        <button type="button" onclick="redirect_best_player_stat_mode()">Best Player Stat Mode</button>
+        <button type="button" onclick="redirect_manual_stat_prediction_mode()">Manual Stat Prediction Mode</button>
     </div>
 
     <script>
@@ -505,8 +505,8 @@
             window.location.href = "{% url 'player_stat_mode' %}";
         }
 
-        function redirect_best_player_stat_mode() {
-            window.location.href = "{% url 'best_player_stat_mode' %}";
+        function redirect_manual_stat_prediction_mode() {
+            window.location.href = "{% url 'manual_stat_prediction_mode' %}";
         }
     </script>
 

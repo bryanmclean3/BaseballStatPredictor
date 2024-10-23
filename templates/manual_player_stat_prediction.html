@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player Stat Mode</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 2px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+            text-align: left;
+            color: #0073e6;
+        }
+
+        form {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            /*max-width: 600px;*/
+        }
+
+        input[type="text"] {
+            width: 150px;
+            height: 20px;
+            padding: 5px;
+            margin-top: 1px;
+            margin-right: 5px;
+            border: 2px solid #0073e6;
+            border-radius: 5px;
+        }
+
+        .next-opponent {
+            float: right;
+            padding: 9px;
+        }
+
+        /*input[type="text"] {*/
+        /*    flex: 1;*/
+        /*    padding: 10px;*/
+        /*    border: 2px solid #0073e6;*/
+        /*    border-radius: 5px 0 0 5px;*/
+        /*    outline: none;*/
+        /*    transition: border-color 0.3s;*/
+        /*}*/
+
+        /*input[type="text"]:focus {*/
+        /*    border-color: #005bb5;*/
+        /*}*/
+
+        button {
+            padding: 10px;
+            border: none;
+            background-color: #0073e6;
+            color: white;
+            border-radius: 5px 5px 5px 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #005bb5;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        li {
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            margin: 5px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            transition: box-shadow 0.3s;
+        }
+
+        li:hover {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 60%;
+            position: relative;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .stats-table th, .stats-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .stats-table th {
+            background-color: #0073e6;
+            color: white;
+        }
+
+        .mode_buttons {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 200px;
+            height: 100vh;
+            background-color: #0073e6;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding-top: 20px;
+        }
+
+        .mode_buttons button {
+            width: 150px;
+            height: 80px;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: white;
+            color: #0073e6;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .mode_buttons button:hover {
+            background-color: #005bb5;
+            color: white;
+        }
+
+        .mode_buttons button:first-of-type {
+            margin-bottom: 110px;
+            width: 100px;
+            height: 50px;
+        }
+
+        .mode_buttons button:last-of-type {
+            position: fixed;
+            bottom: 30px;
+            width: 100px;
+            height: 50px;
+        }
+
+        .mode_buttons {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        #loader {
+            display: none;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1001;
+            width: 48px;
+            height: 48px;
+            border: 5px solid #aaaaaa;
+            border-bottom-color: black;
+            border-radius: 50%;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .tab {
+            width: 400px;
+            overflow: hidden;
+            border: 1px solid #0073e6;
+            background-color: #0073e6;
+        }
+
+        .tab button {
+            width: 200px;
+            background-color: inherit;
+            float: left;
+            border: 1px solid black;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            border-radius: 0 0 0 0;
+        }
+
+        .tab button:hover {
+            background-color: #005bb5;
+        }
+
+        .tab button.active {
+            background-color: #005bb5;
+        }
+
+        .tab_content {
+            display: none;
+            padding: 6px 12px;
+            border-top: none;
+            max-width: 750px;
+            margin: 0 auto;
+        }
+
+        .make-predictions {
+            width: 150px;
+            float: right;
+            margin-top: 1px;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Manual Player Stat Prediction Mode</h1>
+
+    <h4>Select Type of Stat Prediction:</h4>
+
+    <div class="tab">
+        <button id="defaultOpen" class="tab_button active" onclick="display_Stat_Table('Hitting', this)">Batting Stats</button>
+        <button class="tab_button" onclick="display_Stat_Table('Pitching', this)">Pitching Stats</button>
+    </div>
+
+    <form id="HittingStatsForm" method="POST" action="{% url 'batting_stat_prediction' %}">
+        {% csrf_token %}
+        <div id="Hitting" class="tab_content">
+            <h3>Enter Batting Stats:</h3>
+            <table id="HittingGameStats" class="stats-table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Opponent</th>
+                        <th>Runs</th>
+                        <th>Hits</th>
+                        <th>Doubles</th>
+                        <th>Triples</th>
+                        <th>Home Runs</th>
+                        <th>RBIs</th>
+                        <th>Walks</th>
+                        <th>Strike Outs</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="background-color: #0073e6; color: white">Game 1</td>
+                        <td contenteditable="true"></td>
+                        <td contenteditable="true"></td>
+                        <td contenteditable="true"></td>
+                        <td contenteditable="true"></td>
+                        <td contenteditable="true"></td>
+                        <td contenteditable="true"></td>
+                        <td contenteditable="true"></td>
+                        <td contenteditable="true"></td>
+                        <td contenteditable="true"></td>
+                    </tr>
+                </tbody>
+            </table>
+            <button type='button' onclick="add_Game_Row('Hitting')">Add Game</button>
+            <button class="make-predictions" type="submit">Make Predictions</button>
+            <input class="next-opponent" type="text" id="nextHittingOpponent" name="nextHittingOpponent">
+            <label class="next-opponent" for="nextHittingOpponent">Next Opponent:</label>
+        </div>
+    </form>
+
+    <form id="PitchingStatsForm" method="POST" action="{% url 'pitching_stat_prediction' %}">
+        {% csrf_token %}
+        <div id="Pitching" class="tab_content">
+            <h3>Enter Pitching Stats:</h3>
+            <table id="PitchingGameStats" class="stats-table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Opponent</th>
+                        <th>Innings Pitched</th>
+                        <th>Hits Allowed</th>
+                        <th>Runs Allowed</th>
+                        <th>Earned Runs</th>
+                        <th>Home Runs Allowed</th>
+                        <th>Walks</th>
+                        <th>Strike Outs</th>
+                        <th>Pitches Thrown</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="background-color: #0073e6; color: white">Game 1</td>
+                        <td contenteditable="true"></td>
+                        <td contenteditable="true"></td>
+                        <td contenteditable="true"></td>
+                        <td contenteditable="true"></td>
+                        <td contenteditable="true"></td>
+                        <td contenteditable="true"></td>
+                        <td contenteditable="true"></td>
+                        <td contenteditable="true"></td>
+                        <td contenteditable="true"></td>
+                    </tr>
+                </tbody>
+            </table>
+            <button type='button' onclick="add_Game_Row('Pitching')">Add Game</button>
+            <button class="make-predictions" type="submit">Make Predictions</button>
+            <input class="next-opponent" type="text" id="nextPitchingOpponent" name="nextPitchingOpponent">
+            <label class="next-opponent" for="nextPitchingOpponent">Next Opponent:</label>
+        </div>
+    </form>
+
+    <div id="loader"></div>
+
+    <div id="predictionPopup" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closePopup()">&times;</span>
+            <h4>Predicted Stats:</h4>
+            <table id="playerStats" class="stats-table">
+                <thead>
+                    <tr>
+                        <th>Stat</th>
+                        <th>Prediction</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <div class="mode_buttons">
+        <button type="button" onclick="action1()">Login</button>
+        <p class="mode_label">Prediction Competition Modes:</p>
+        <button type="button" onclick="redirect_head_to_head_mode()">Head-To-Head Mode</button>
+        <button type="button" onclick="redirect_player_stat_mode()">Player Stat Mode</button>
+        <button type="button" onclick="home_button()">Home</button>
+    </div>
+
+    <script>
+        document.getElementById('HittingStatsForm').onsubmit = function(e) {
+            e.preventDefault();
+
+            var modal = document.getElementById("predictionPopup");
+            var loader = document.getElementById("loader");
+
+            loader.style.display = "inline-block";
+            let table = document.getElementById('HittingGameStats');
+            let matrix = [];
+            let nextOpponent = document.getElementById('nextHittingOpponent').value.trim();
+
+            for (let i = 1, row; row = table.rows[i]; i++) {
+                let rowData = [];
+
+                for (let j = 1, cell; cell = row.cells[j]; j++) {
+                    rowData.push(cell.innerText.trim());
+                }
+
+                matrix.push(rowData);
+            }
+
+            fetch("{% url 'batting_stat_prediction' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}",
+                },
+                body: JSON.stringify({ stats: matrix, nextOpponent: nextOpponent })
+            })
+            .then(response => response.json())
+            .then(data => {
+                    const stats = data.stats;
+                    const tbody = document.querySelector("#playerStats tbody");
+                    tbody.innerHTML = "";
+
+                    for (const [stat, Prediction] of Object.entries(stats)) {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `<td>${stat}</td><td>${Prediction}</td>`;
+                        tbody.appendChild(row);
+                    }
+
+                    modal.style.display = "block";
+                })
+            .catch(error => console.error('Error fetching player stats:', error))
+            .finally(() => {
+                loader.style.display = "none";
+            });
+        };
+
+        document.getElementById('PitchingStatsForm').onsubmit = function(e) {
+            e.preventDefault();
+
+            var modal = document.getElementById("predictionPopup");
+            var loader = document.getElementById("loader");
+
+            loader.style.display = "inline-block";
+            let table = document.getElementById('PitchingGameStats');
+            let matrix = [];
+            let nextOpponent = document.getElementById('nextPitchingOpponent').value.trim();
+
+            for (let i = 1, row; row = table.rows[i]; i++) {
+                let rowData = [];
+
+                for (let j = 1, cell; cell = row.cells[j]; j++) {
+                    rowData.push(cell.innerText.trim());
+                }
+
+                matrix.push(rowData);
+            }
+
+            fetch("{% url 'pitching_stat_prediction' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}",
+                },
+                body: JSON.stringify({ stats: matrix, nextOpponent: nextOpponent })
+            })
+            .then(data => {
+                    const stats = data.stats;
+                    const tbody = document.querySelector("#playerStats tbody");
+                    tbody.innerHTML = "";
+
+                    for (const [stat, Prediction] of Object.entries(stats)) {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `<td>${stat}</td><td>${Prediction}</td>`;
+                        tbody.appendChild(row);
+                    }
+
+                    modal.style.display = "block";
+                })
+            .catch(error => console.error('Error fetching player stats:', error))
+            .finally(() => {
+                loader.style.display = "none";
+            });
+        };
+
+        function closePopup() {
+            var modal = document.getElementById("predictionPopup");
+            modal.style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            var modal = document.getElementById("predictionPopup");
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        document.onreadystatechange = function () {
+            if (document.readyState === 'complete') {
+                document.getElementById('loader').style.display = "none";
+            }
+        };
+
+        let games_Added = {
+            Hitting: 1,
+            Pitching: 1
+        };
+
+        function display_Stat_Table(statType, element) {
+            var tabContents = document.getElementsByClassName("tab_content");
+            for (var i = 0; i < tabContents.length; i++) {
+                tabContents[i].style.display = "none";
+            }
+            document.getElementById(statType).style.display = "block";
+
+            var buttons = document.getElementsByClassName("tab_button");
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove("active");
+            }
+
+            element.classList.add("active");
+        }
+
+        window.onload = function() {
+            document.getElementById("defaultOpen").click();
+        };
+
+        function add_Game_Row(containerId) {
+            games_Added[containerId] += 1;
+            const tbody = document.querySelector(`#${containerId}GameStats tbody`);
+            const row = document.createElement("tr");
+            var game_number = 'Game ' + String(games_Added[containerId])
+            const gameCell = `<td style="background-color: #0073e6; color: white">${game_number}</td>`;
+
+            const editableCells = Array(9).fill('<td contenteditable="true"></td>').join('');
+
+            row.innerHTML = gameCell + editableCells;
+            tbody.appendChild(row);
+        }
+
+        function action1() {
+            alert("Button 1 clicked!");
+        }
+
+        function redirect_head_to_head_mode() {
+            window.location.href = "{% url 'head_to_head_mode' %}";
+        }
+
+        function redirect_player_stat_mode() {
+            window.location.href = "{% url 'player_stat_mode' %}";
+        }
+
+        function home_button() {
+            window.location.href = "{% url 'player_search' %}";
+        }
+    </script>
+</body>
+</html>

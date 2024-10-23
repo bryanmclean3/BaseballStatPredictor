@@ -1,4 +1,5 @@
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET
 import statsapi as sa
 import pandas as pd
@@ -18,7 +19,6 @@ from django.contrib.auth.decorators import login_required
 import logging
 import BaseballStatPredictor.models as models
 from django.db.models import Q
-
 
 # Create your views here.
 
@@ -263,18 +263,8 @@ def player_stat_mode_search(request):
     return render(request, 'player_stat_mode.html', {'players': players, 'query': query})
 
 
-def best_player_stat_mode(request):
-    return render(request, 'best_player_stat_mode.html')
-
-
-def best_player_stat_mode_search(request):
-    query = request.GET.get('q', '')
-    players = []
-
-    if query:
-        players = search_mlb_players(query)
-
-    return render(request, 'best_player_stat_mode.html', {'players': players, 'query': query})
+def manual_stat_prediction_mode(request):
+    return render(request, 'manual_player_stat_prediction.html')
 
 
 def get_games_today():
@@ -289,6 +279,74 @@ def head_to_head_mode(request):
     todays_games = get_games_today()
 
     return render(request, 'head_to_head_mode.html', {'todays_games': todays_games})
+
+
+@csrf_exempt
+def batting_stat_prediction(request):
+    if request.method == 'POST':
+        body = json.loads(request.body)
+        matrix = body.get('stats', [])
+        nextOpponent = body.get('nextOpponent', '')
+
+        columns = ['Opponent', 'Runs', 'Hits', 'Doubles', 'Triples', 'Home Runs', 'RBIs', 'Walks', 'Strike Outs']
+        stats_df = pd.DataFrame(matrix, columns=columns)
+
+        X_train = stats_df['Opponent']
+        y_train = stats_df[['Runs', 'Hits', 'Doubles', 'Triples', 'Home Runs', 'RBIs', 'Walks', 'Strike Outs']]
+
+        encoder = OneHotEncoder(handle_unknown='ignore')
+        X_encoded = encoder.fit_transform(X_train.values.reshape(-1, 1)).toarray()
+
+        ridge = Ridge(alpha=1)
+
+        ridge.fit(X_encoded, y_train)
+        new_opponent = pd.DataFrame({'Opponent': [nextOpponent]})
+        new_X_encoded = encoder.transform(new_opponent['Opponent'].values.reshape(-1, 1)).toarray()
+        predicted_stats = ridge.predict(new_X_encoded)
+
+        predicted_stats_list = predicted_stats.tolist()
+
+        predicted_stats_list = np.around(predicted_stats_list, 4).tolist()
+
+        stats = {'Opponent': nextOpponent, **dict(zip(columns[1:], predicted_stats_list[0]))}
+
+        return JsonResponse({'stats': stats})
+
+
+@csrf_exempt
+def pitching_stat_prediction(request):
+    if request.method == 'POST':
+        body = json.loads(request.body)
+        matrix = body.get('stats', [])
+        nextOpponent = body.get('nextOpponent', '')
+
+        columns = ['Opponent', 'Innings Pitched', 'Hits Allowed', 'Runs Allowed', 'Earned Runs', 'Home Runs Allowed',
+                   'Walks', 'Strike Outs', 'Pitches Thrown']
+        stats_df = pd.DataFrame(matrix, columns=columns)
+
+        X_train = stats_df['Opponent']
+        y_train = stats_df[
+            ['Innings Pitched', 'Hits Allowed', 'Runs Allowed', 'Earned Runs', 'Home Runs Allowed', 'Walks',
+             'Strike Outs', 'Pitches Thrown']]
+
+        encoder = OneHotEncoder(handle_unknown='ignore')
+        X_encoded = encoder.fit_transform(X_train.values.reshape(-1, 1)).toarray()
+
+        ridge = Ridge(alpha=1)
+
+        ridge.fit(X_encoded, y_train)
+        new_opponent = pd.DataFrame({'Opponent': [nextOpponent]})
+        new_X_encoded = encoder.transform(new_opponent['Opponent'].values.reshape(-1, 1)).toarray()
+        predicted_stats = ridge.predict(new_X_encoded)
+
+        predicted_stats_list = predicted_stats.tolist()
+
+        predicted_stats_list = np.around(predicted_stats_list, 4).tolist()
+
+        stats = {'Opponent': nextOpponent,
+                 **dict(zip(columns[1:], predicted_stats_list[0]))}
+
+        return JsonResponse({'stats': stats})
 
 
 oauth = OAuth()

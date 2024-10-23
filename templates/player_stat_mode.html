@@ -369,7 +369,7 @@
         <button type="button" onclick="action1()">Login</button>
         <p class="mode_label">Prediction Competition Modes:</p>
         <button type="button" onclick="redirect_head_to_head_mode()">Head-To-Head Mode</button>
-        <button type="button" onclick="redirect_best_player_stat_mode()">Best Player Stat Mode</button>
+        <button type="button" onclick="redirect_manual_stat_prediction_mode()">Manual Stat Prediction Mode</button>
         <button type="button" onclick="home_button()">Home</button>
     </div>
 
@@ -544,8 +544,8 @@
             window.location.href = "{% url 'head_to_head_mode' %}";
         }
 
-        function redirect_best_player_stat_mode() {
-            window.location.href = "{% url 'best_player_stat_mode' %}";
+        function redirect_manual_stat_prediction_mode() {
+            window.location.href = "{% url 'manual_stat_prediction_mode' %}";
         }
 
         function home_button() {
