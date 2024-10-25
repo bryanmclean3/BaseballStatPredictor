@@ -15,15 +15,13 @@ from django.conf import settings
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from urllib.parse import quote_plus, urlencode
-from django.contrib.auth.decorators import login_required
-import logging
 import BaseballStatPredictor.models as models
-from django.db.models import Q
 
 # Create your views here.
 
-today = date.today().strftime("%Y-%m-%d")
-
+# can be changed to set current date for app
+# today = date.today().strftime("%Y-%m-%d")
+today = '2024-10-25'
 
 # make API call to get players matching search query
 def search_mlb_players(query):
@@ -58,6 +56,7 @@ def player_search(request):
     return render(request, 'player_search.html', {'players': players, 'query': query, 'user_email': user_email})
 
 
+# send player predictions to frontend to be displayed in popup
 @require_GET
 def get_player_prediction(request):
     player_name = request.GET.get('fullName')
@@ -67,6 +66,7 @@ def get_player_prediction(request):
     return JsonResponse({'stats': stats})
 
 
+# get necessary player batting stats from each game stats
 def addBattingGameStats(opponent, game_stats):
     runs = game_stats['batting']['runs']
     hits = game_stats['batting']['hits']
@@ -80,6 +80,7 @@ def addBattingGameStats(opponent, game_stats):
     return opponent, runs, hits, doubles, triples, homeRuns, rbi, walks, Ks
 
 
+# get necessary player pitching stats from each game stats
 def addPitchingGameStats(opponent, game_stats):
     inningsPitched = game_stats['pitching']['inningsPitched']
     hits = game_stats['pitching']['hits']
@@ -93,6 +94,7 @@ def addPitchingGameStats(opponent, game_stats):
     return opponent, inningsPitched, hits, runs, earnedRuns, homeRuns, walks, Ks, Ps
 
 
+# get desired player's stats from the boxscore for a game
 def fetch_batter_game_stats(game, player_id, playername):
     game_id = game['game_id']
     player_stats = sa.boxscore_data(game_id)
@@ -113,6 +115,7 @@ def fetch_batter_game_stats(game, player_id, playername):
         return None
 
 
+# get desired player's stats from the boxscore for a game
 def fetch_pitcher_game_stats(game, player_id, playername):
     game_id = game['game_id']
     player_stats = sa.boxscore_data(game_id)
@@ -133,6 +136,7 @@ def fetch_pitcher_game_stats(game, player_id, playername):
         return None
 
 
+# do ridge regression to predict next game stats for any player
 def player_stat_prediction(player_id):
     two_hundred_days_away = (date.today() + timedelta(days=200)).strftime("%Y-%m-%d")
     allowed_game_types = {'R', 'P', 'F', 'D', 'L', 'W', 'C', 'N'}
@@ -250,12 +254,14 @@ def player_stat_prediction(player_id):
     return predicted_stats_dict
 
 
+# open the player stat mode
 def player_stat_mode(request):
     user_email = request.session.get("user", {}).get("email")
 
     return render(request, 'player_stat_mode.html', {'user_email': user_email})
 
 
+# make a player search and send results to frontend
 def player_stat_mode_search(request):
     query = request.GET.get('q', '')
     players = []
@@ -266,11 +272,13 @@ def player_stat_mode_search(request):
     return render(request, 'player_stat_mode.html', {'players': players, 'query': query})
 
 
+# open manual stat prediction mode
 def manual_stat_prediction_mode(request):
     user_email = request.session.get("user", {}).get("email")
     return render(request, 'manual_player_stat_prediction.html', {'user_email': user_email})
 
 
+# get the list of matchups that are occurring today or fo whatever date the today variable is set to
 def get_games_today():
     games = sa.schedule(start_date=today, end_date=today)
     todays_games = []
@@ -279,6 +287,7 @@ def get_games_today():
     return todays_games
 
 
+# open the head-to-head prediction mode
 def head_to_head_mode(request):
     todays_games = get_games_today()
     user_email = request.session.get("user", {}).get("email")
@@ -286,6 +295,7 @@ def head_to_head_mode(request):
     return render(request, 'head_to_head_mode.html', {'todays_games': todays_games, 'user_email': user_email})
 
 
+# make batting stat predictions based of manually input stats
 @csrf_exempt
 def batting_stat_prediction(request):
     if request.method == 'POST':
@@ -318,6 +328,7 @@ def batting_stat_prediction(request):
         return JsonResponse({'stats': stats})
 
 
+# make pitching stat predictions based of manually input stats
 @csrf_exempt
 def pitching_stat_prediction(request):
     if request.method == 'POST':
@@ -354,6 +365,65 @@ def pitching_stat_prediction(request):
         return JsonResponse({'stats': stats})
 
 
+@csrf_exempt
+def head_to_head_predictions(request):
+    if request.method == 'POST':
+        body = json.loads(request.body)
+        predictions = body.get('predictions')
+        game_ids = list(predictions.keys())
+        teams = list(predictions.values())
+
+        store_head_to_head_predictions(game_ids, today, teams)
+
+        return JsonResponse({'status': 'success', 'predictions': predictions})
+
+
+def store_head_to_head_predictions(game_ids, date, teams):
+    for idx in range(len(teams)):
+        models.HeadToHead.objects.update_or_create(
+            game_id=game_ids[idx],
+            date=date,
+            defaults={
+                'team': teams[idx]
+            }
+        )
+
+
+@csrf_exempt
+def player_stat_predictions(request):
+    if request.method == 'POST':
+        body = json.loads(request.body)
+        predictions = body.get('predictions')
+
+        store_player_predictions(today, predictions['player'], predictions['Opponent'], predictions)
+
+        return JsonResponse({'status': 'success', 'predictions': predictions})
+
+
+def store_player_predictions(date, name, opponent, predictions):
+    models.PlayerStats.objects.update_or_create(
+        date=date,
+        name=name,
+        opponent=opponent,
+        defaults={
+            'runs': predictions['Runs'] if 'Runs' in predictions else None,
+            'hits': predictions['Hits'] if 'Hits' in predictions else None,
+            'doubles': predictions['Doubles'] if 'Doubles' in predictions else None,
+            'triples': predictions['Triples'] if 'Triples' in predictions else None,
+            'home_runs': predictions['Home Runs'] if 'Home Runs' in predictions else None,
+            'rbis': predictions['RBIs'] if 'RBIs' in predictions else None,
+            'walks': predictions['Walks'] if 'Walks' in predictions else None,
+            'strike_outs': predictions['Strike Outs'] if 'Strike Outs' in predictions else None,
+            'innings_pitched': predictions['Innings Pitched'] if 'Innings Pitched' in predictions else None,
+            'hits_allowed': predictions['Hits Allowed'] if 'Hits Allowed' in predictions else None,
+            'runs_allowed': predictions['Runs Allowed'] if 'Runs Allowed' in predictions else None,
+            'earned_runs': predictions['Earned Runs'] if 'Earned Runs' in predictions else None,
+            'home_runs_allowed': predictions['Home Runs Allowed'] if 'Home Runs Allowed' in predictions else None,
+            'pitches_thrown': predictions['Pitches Thrown'] if 'Pitches Thrown' in predictions else None,
+        }
+    )
+
+
 oauth = OAuth()
 
 oauth.register(
@@ -367,11 +437,13 @@ oauth.register(
 )
 
 
+# log user in with auth0
 def login(request):
     callback_url = request.build_absolute_uri(reverse("callback"))
     return oauth.auth0.authorize_redirect(request, callback_url)
 
 
+# callback function to get logged-in user's info
 def callback(request):
     token = oauth.auth0.authorize_access_token(request)
     user_info_url = f"https://{settings.AUTH0_DOMAIN}/userinfo"
@@ -389,6 +461,7 @@ def callback(request):
     return redirect(request.build_absolute_uri(reverse("search")))
 
 
+# log out user from auth0
 def logout(request):
     request.session.clear()
 
@@ -404,6 +477,7 @@ def logout(request):
     )
 
 
+# return teh user to the search page
 def search(request):
     user = request.session.get("user")
     user_email = user.get("email") if user else None
@@ -419,6 +493,7 @@ def search(request):
     )
 
 
+# store user in the database
 def store_user(sub, name, email):
     user, created = models.User.objects.update_or_create(
         email=email,

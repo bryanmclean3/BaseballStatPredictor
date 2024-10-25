@@ -537,7 +537,26 @@
                 playerPredictions[table.rows[i].cells[0].innerText.trim()] = table.rows[i].cells[2].innerText.trim();
             }
 
-            alert("Player Predictions Saved: " + JSON.stringify(playerPredictions, null, 2)); // Format for better readability
+            var loader = document.getElementById("loader");
+
+            loader.style.display = "inline-block";
+
+            fetch("{% url 'player_stat_predictions' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ predictions: playerPredictions})
+            })
+            .then(response => response.json())
+            .then(data => {
+
+            })
+            .catch(error => console.error('Error fetching player stats:', error))
+            .finally(() => {
+                loader.style.display = "none";
+            });
+
         }
 
         function redirect_login() {

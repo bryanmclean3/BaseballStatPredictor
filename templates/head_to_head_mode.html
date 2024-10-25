@@ -65,6 +65,26 @@
             background-color: #e0f7ff;
         }
 
+        #loader {
+            display: none;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1001;
+            width: 48px;
+            height: 48px;
+            border: 5px solid #aaaaaa;
+            border-bottom-color: black;
+            border-radius: 50%;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
 
         .mode_buttons {
             position: fixed;
@@ -140,6 +160,8 @@
         <button type="button" onclick="saveSelections()">Save Selections</button>
     </div>
 
+    <div id="loader"></div>
+
     <div class="mode_buttons">
         {% if user_email %}
             <button type="button" onclick="redirect_logout()">Logout</button>
@@ -174,7 +196,28 @@
         }
 
         function saveSelections() {
-            alert("Game Predictions Saved:" + JSON.stringify(selections));
+            var loader = document.getElementById("loader");
+
+            loader.style.display = "inline-block";
+
+            fetch("{% url 'head_to_head_predictions' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ predictions: selections})
+            })
+            .then(response => response.json())
+            .then(data => {
+
+            })
+            .catch(error => console.error('Error fetching player stats:', error))
+            .finally(() => {
+                loader.style.display = "none";
+            });
+
+
+            // alert("Game Predictions Saved:" + JSON.stringify(selections));
         }
 
         function redirect_login() {
