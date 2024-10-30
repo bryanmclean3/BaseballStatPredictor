@@ -5,7 +5,7 @@ import pandas as pd
 today = date.today().strftime("%Y-%m-%d")
 
 # Get Aaron Judge season stats
-playername = sa.lookup_player('paul gold')
+playername = sa.lookup_player('aaron judge')
 player = sa.player_stat_data(playername[0]['id'], 'hitting', 'season')
 
 two_hundred_days_away = (date.today() + timedelta(days=200)).strftime("%Y-%m-%d")
@@ -17,11 +17,11 @@ schedule = sa.schedule(team=playername[0]['currentTeam']['id'], start_date=today
 filtered_opponents = [game for game in schedule if game['game_type'] in allowed_game_types]
 
 # Check if any opponents match the allowed game types
-if filtered_opponents:
-    next_opponent = filtered_opponents[0]
-    print(next_opponent)
-else:
-    print("No upcoming games with allowed game types found.")
+# if filtered_opponents:
+#     next_opponent = filtered_opponents[0]
+#     print(next_opponent)
+# else:
+#     print("No upcoming games with allowed game types found.")
 
 
 # print(player['stats'][0]['stats']['homeRuns'])
@@ -31,7 +31,9 @@ else:
 # Get Aaron Judge stats for last 5 games
 # reuse the playername variable to get player id
 last_5_gameLogs = sa.player_stat_data(playername[0]['id'], 'hitting', 'gameLog')
-last_5_games = last_5_gameLogs['stats'][-5:]
+last_5_games = last_5_gameLogs['stats'][-1:]
+
+print(last_5_games)
 
 hits = 0
 homeRuns = 0
@@ -70,25 +72,24 @@ for recent_game in last_5_games:
 # Get Aaron Judge's stats for last 5 games against the Blue Jays
 yankees_bluejays_schedule = sa.schedule(
     team=playername[0]['currentTeam']['id'],
-    opponent=sa.lookup_team('blue jays')[0]['id'],
     start_date='2024-01-01',
-    end_date=today
+    end_date='2024-10-27'
 )
 
-# last_n_games = yankees_bluejays_schedule[-5:]
+last_n_games = yankees_bluejays_schedule[-1:]
 #
-# for game in last_n_games:
-#     game_id = game['game_id']
-#     game_date = game['game_date']
+game = last_n_games[0]
+game_id = game['game_id']
+game_date = game['status']
+print(game_date)
 #
-#     player_stats = sa.boxscore_data(game_id)
-#     print(game_date)
+player_stats = sa.boxscore_data(game_id)
 #
 #     # if yankees are away, search away dict for aaron judge's stats
-#     if player_stats['teamInfo']['away']['id'] == playername[0]['currentTeam']['id']:
-#         print(player_stats['away']['players']['ID' + str(playername[0]['id'])]['stats'])
-#     else:
-#         print(player_stats['home']['players']['ID' + str(playername[0]['id'])]['stats'])
+if player_stats['teamInfo']['away']['id'] == playername[0]['currentTeam']['id']:
+    print(player_stats['away']['players']['ID' + str(playername[0]['id'])]['stats'])
+else:
+    print(player_stats['home']['players']['ID' + str(playername[0]['id'])]['stats'])
 
 
 # --------------------------------------------------------------------------------
@@ -113,11 +114,16 @@ game_types = sa.meta('gameTypes')
 #     return opponent, runs, hits, doubles, triples, homeRuns, rbi, walks, Ks
 #
 #
-# team_schedule = sa.schedule(
-#         team=playername[0]['currentTeam']['id'],
-#         start_date=sa.latest_season()['regularSeasonStartDate'],
-#         end_date=today
-#     )
+team_schedule = sa.schedule(
+        team=playername[0]['currentTeam']['id'],
+        start_date="2024-10-25",
+        end_date="2024-10-25"
+    )
+
+game = team_schedule[0]
+if game['status'] == 'Final':
+    game['winning_team']
+# print(game)
 #
 # prev_games = [
 #     game for game in team_schedule if game['status'] == 'Final' and game['game_type'] == 'R' or game['game_type'] == 'P' or game['game_type'] == 'F' or game['game_type'] == 'D' or game['game_type'] == 'L' or game['game_type'] == 'W' or game['game_type'] == 'C'

@@ -11,6 +11,7 @@ class User(models.Model):
 # database model for predicting head-to-head winners
 class HeadToHead(models.Model):
     date = models.DateField()
+    email = models.CharField()
     game_id = models.IntegerField()
     team = models.CharField()
 
@@ -18,6 +19,7 @@ class HeadToHead(models.Model):
 # database model for predicting player Stats
 class PlayerStats(models.Model):
     date = models.DateField()
+    email = models.CharField()
     name = models.CharField()
     opponent = models.CharField()
     runs = models.IntegerField(blank=True, null=True)
@@ -28,7 +30,7 @@ class PlayerStats(models.Model):
     rbis = models.IntegerField(blank=True, null=True)
     walks = models.IntegerField(blank=True, null=True)
     strike_outs = models.IntegerField(blank=True, null=True)
-    innings_pitched = models.IntegerField(blank=True, null=True)
+    innings_pitched = models.FloatField(blank=True, null=True)
     hits_allowed = models.IntegerField(blank=True, null=True)
     runs_allowed = models.IntegerField(blank=True, null=True)
     earned_runs = models.IntegerField(blank=True, null=True)

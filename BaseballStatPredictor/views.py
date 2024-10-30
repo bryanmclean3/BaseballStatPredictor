@@ -20,8 +20,8 @@ import BaseballStatPredictor.models as models
 # Create your views here.
 
 # can be changed to set current date for app
-# today = date.today().strftime("%Y-%m-%d")
-today = '2024-10-25'
+today = date.today().strftime("%Y-%m-%d")
+# today = '2024-08-19'
 
 # make API call to get players matching search query
 def search_mlb_players(query):
@@ -263,13 +263,14 @@ def player_stat_mode(request):
 
 # make a player search and send results to frontend
 def player_stat_mode_search(request):
+    user_email = request.session.get("user", {}).get("email")
     query = request.GET.get('q', '')
     players = []
 
     if query:
         players = search_mlb_players(query)
 
-    return render(request, 'player_stat_mode.html', {'players': players, 'query': query})
+    return render(request, 'player_stat_mode.html', {'players': players, 'query': query, 'user_email': user_email})
 
 
 # open manual stat prediction mode
@@ -368,21 +369,23 @@ def pitching_stat_prediction(request):
 @csrf_exempt
 def head_to_head_predictions(request):
     if request.method == 'POST':
+        user_email = request.session.get("user", {}).get("email")
         body = json.loads(request.body)
         predictions = body.get('predictions')
         game_ids = list(predictions.keys())
         teams = list(predictions.values())
 
-        store_head_to_head_predictions(game_ids, today, teams)
+        store_head_to_head_predictions(game_ids, today, user_email, teams)
 
         return JsonResponse({'status': 'success', 'predictions': predictions})
 
 
-def store_head_to_head_predictions(game_ids, date, teams):
+def store_head_to_head_predictions(game_ids, date, email, teams):
     for idx in range(len(teams)):
         models.HeadToHead.objects.update_or_create(
             game_id=game_ids[idx],
             date=date,
+            email=email,
             defaults={
                 'team': teams[idx]
             }
@@ -392,17 +395,30 @@ def store_head_to_head_predictions(game_ids, date, teams):
 @csrf_exempt
 def player_stat_predictions(request):
     if request.method == 'POST':
+        user_email = request.session.get("user", {}).get("email")
         body = json.loads(request.body)
         predictions = body.get('predictions')
 
-        store_player_predictions(today, predictions['player'], predictions['Opponent'], predictions)
+        two_hundred_days_away = (date.today() + timedelta(days=200)).strftime("%Y-%m-%d")
+        allowed_game_types = {'R', 'P', 'F', 'D', 'L', 'W', 'C', 'N'}
+        playername = sa.lookup_player(predictions['player'])
+
+        schedule = sa.schedule(team=playername[0]['currentTeam']['id'], start_date=today,
+                               end_date=two_hundred_days_away)
+
+        filtered_opponents = [game for game in schedule if game['game_type'] in allowed_game_types]
+
+        next_opponent = filtered_opponents[0]
+
+        store_player_predictions(next_opponent['game_date'], user_email, predictions['player'], predictions['Opponent'], predictions)
 
         return JsonResponse({'status': 'success', 'predictions': predictions})
 
 
-def store_player_predictions(date, name, opponent, predictions):
+def store_player_predictions(date, email, name, opponent, predictions):
     models.PlayerStats.objects.update_or_create(
         date=date,
+        email=email,
         name=name,
         opponent=opponent,
         defaults={
@@ -422,6 +438,107 @@ def store_player_predictions(date, name, opponent, predictions):
             'pitches_thrown': predictions['Pitches Thrown'] if 'Pitches Thrown' in predictions else None,
         }
     )
+
+
+def previous_predictions(request):
+    user_email = request.session.get("user", {}).get("email")
+
+    return render(request, 'previous_predictions.html', {'user_email': user_email})
+
+
+@csrf_exempt
+def view_predictions(request):
+    if request.method == 'POST':
+        user_email = request.session.get("user", {}).get("email")
+        body = json.loads(request.body)
+        selected_date = body.get('selected_date')
+
+        if selected_date <= today:
+
+            HeadToHeadPredictions = list(models.HeadToHead.objects.filter(date=selected_date, email=user_email).values())
+            HeadToHeadResults = list()
+
+            if len(HeadToHeadPredictions) > 0:
+                team_schedule = sa.schedule(
+                    start_date=selected_date,
+                    end_date=selected_date
+                )
+
+                for idx, game in enumerate(team_schedule):
+                    if game['status'] == 'Final':
+                        HeadToHeadResults.append({
+                            'game_id': idx + 1,
+                            'winning_team': game['winning_team'],
+                            'losing_team': game['losing_team']
+                        })
+                    else:
+                        HeadToHeadResults.append({'game_id': idx + 1, 'status': 'Game Has Not Finished'})
+            else:
+                HeadToHeadResults.append({'game_id': 0, 'status': 'No Predictions Available'})
+
+            PlayerStatPredictions = list(models.PlayerStats.objects.filter(date=selected_date, email=user_email).values())
+
+            PlayerNames = models.PlayerStats.objects.filter(date=selected_date, email=user_email).values('name', 'opponent', 'innings_pitched')
+
+            PlayerStatResults = list()
+            if len(PlayerNames) > 0:
+                for player in PlayerNames:
+                    player_lookup = sa.lookup_player(player['name'])[0]
+                    player_game = sa.schedule(
+                        team=player_lookup['currentTeam']['id'],
+                        start_date=selected_date,
+                        end_date=selected_date
+                    )[0]
+                    if player_game['status'] == 'Final':
+                        game_id = player_game['game_id']
+                        player_stats = sa.boxscore_data(game_id)
+                        if player_stats['teamInfo']['away']['id'] == player_lookup['currentTeam']['id']:
+                            game_stats = player_stats['away']['players']['ID' + str(player_lookup['id'])]['stats']
+                        else:
+                            game_stats = player_stats['home']['players']['ID' + str(player_lookup['id'])]['stats']
+
+                        if player['innings_pitched'] is not None:
+                            values = list()
+                            values.append(game_stats['pitching']['inningsPitched'])
+                            values.append(game_stats['pitching']['hits'])
+                            values.append(game_stats['pitching']['runs'])
+                            values.append(game_stats['pitching']['earnedRuns'])
+                            values.append(game_stats['pitching']['homeRuns'])
+                            values.append(game_stats['pitching']['baseOnBalls'])
+                            values.append(game_stats['pitching']['strikeOuts'])
+                            values.append(game_stats['pitching']['numberOfPitches'])
+
+                            keys = ['Innings Pitched', 'Hits Allowed', 'Runs Allowed', 'Earned Runs', 'Home Runs Allowed',
+                                    'Walks', 'Strike Outs', 'Pitches Thrown']
+
+                            stats_dict = {'name': player['name'], **dict(zip(keys, values))}
+
+                            PlayerStatResults.append(stats_dict)
+                        else:
+                            values = list()
+                            values.append(game_stats['batting']['runs'])
+                            values.append(game_stats['batting']['hits'])
+                            values.append(game_stats['batting']['doubles'])
+                            values.append(game_stats['batting']['triples'])
+                            values.append(game_stats['batting']['homeRuns'])
+                            values.append(game_stats['batting']['rbi'])
+                            values.append(game_stats['batting']['baseOnBalls'])
+                            values.append(game_stats['batting']['strikeOuts'])
+
+                            keys = ['Runs', 'Hits', 'Doubles', 'Triples', 'Home Runs', 'RBIs', 'Walks', 'Strike Outs']
+
+                            stats_dict = {'name': player['name'], **dict(zip(keys, values))}
+
+                            PlayerStatResults.append(stats_dict)
+                    else:
+                        PlayerStatResults.append({'status': 'Game Has Not Finished'})
+            else:
+                PlayerStatResults.append({'status': 'No Predictions Available'})
+
+            return JsonResponse({'HeadToHeadPredictions': HeadToHeadPredictions, 'HeadToHeadResults': HeadToHeadResults,
+                                 'PlayerStatPredictions': PlayerStatPredictions, 'PlayerStatResults': PlayerStatResults})
+        else:
+            return JsonResponse({'status': 'Fail'})
 
 
 oauth = OAuth()

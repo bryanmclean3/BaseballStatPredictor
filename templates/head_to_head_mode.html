@@ -138,6 +138,32 @@
             margin-bottom: 20px;
             font-size: 16px;
         }
+
+        .confirmation-message {
+            position: fixed;
+            background-color: black;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 16px;
+            z-index: 1000;
+            opacity: 1;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .confirmation-message.fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .prev-predictions {
+            position: fixed;
+            width: 150px;
+            height: 100px;
+            top: 15px;
+            left: 15px;
+        }
+
     </style>
 </head>
 <body>
@@ -157,10 +183,18 @@
     </div>
 
     <div class="save-selections">
-        <button type="button" onclick="saveSelections()">Save Selections</button>
+        {% if user_email %}
+            <button type="button" onclick="saveSelections()">Save Selections</button>
+        {% endif %}
     </div>
 
     <div id="loader"></div>
+
+    <div class="prev-predictions">
+        {% if user_email %}
+            <button type="button" onclick="viewPrevPredictions()">View Previous Predictions</button>
+        {% endif %}
+    </div>
 
     <div class="mode_buttons">
         {% if user_email %}
@@ -209,15 +243,28 @@
             })
             .then(response => response.json())
             .then(data => {
+                var messageDiv = document.createElement("div");
+                messageDiv.innerText = "Predictions Saved!";
+                messageDiv.className = "confirmation-message";
+                document.body.appendChild(messageDiv);
 
+                setTimeout(() => {
+                    messageDiv.classList.add("fade-out");
+                }, 2000);
+
+                setTimeout(() => {
+                    messageDiv.remove();
+                }, 2500);
             })
             .catch(error => console.error('Error fetching player stats:', error))
             .finally(() => {
                 loader.style.display = "none";
             });
 
+        }
 
-            // alert("Game Predictions Saved:" + JSON.stringify(selections));
+        function viewPrevPredictions() {
+            window.location.href = "{% url 'previous_predictions' %}"
         }
 
         function redirect_login() {
