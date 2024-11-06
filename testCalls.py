@@ -1,6 +1,7 @@
 import statsapi as sa
 from datetime import date, timedelta
 import pandas as pd
+import requests
 
 today = date.today().strftime("%Y-%m-%d")
 
@@ -33,7 +34,7 @@ filtered_opponents = [game for game in schedule if game['game_type'] in allowed_
 last_5_gameLogs = sa.player_stat_data(playername[0]['id'], 'hitting', 'gameLog')
 last_5_games = last_5_gameLogs['stats'][-1:]
 
-print(last_5_games)
+# print(last_5_games)
 
 hits = 0
 homeRuns = 0
@@ -262,3 +263,16 @@ from sklearn.metrics import mean_squared_error
 # print("Predicted stats against the opponent:")
 # for stat in y.columns:
 #     print(f"{stat}: {new_predictions[stat]}")
+
+url = "https://statsapi.mlb.com/api/v1/seasons?sportId=1&season=2024"
+
+response = requests.get(url)
+data = response.json()
+
+regular_season_start_date = data['seasons'][0]['regularSeasonStartDate']
+
+regular_season_start_date2 = sa.latest_season()['regularSeasonStartDate']
+
+print(regular_season_start_date)
+print(regular_season_start_date2)
+

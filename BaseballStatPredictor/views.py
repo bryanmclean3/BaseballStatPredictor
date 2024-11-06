@@ -16,12 +16,13 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from urllib.parse import quote_plus, urlencode
 import BaseballStatPredictor.models as models
+import requests
 
 # Create your views here.
 
 # can be changed to set current date for app
-today = date.today().strftime("%Y-%m-%d")
-# today = '2024-08-19'
+# today = date.today().strftime("%Y-%m-%d")
+today = '2024-08-21'
 
 # make API call to get players matching search query
 def search_mlb_players(query):
@@ -142,9 +143,18 @@ def player_stat_prediction(player_id):
     allowed_game_types = {'R', 'P', 'F', 'D', 'L', 'W', 'C', 'N'}
     playername = sa.lookup_player(player_id)
 
+    url = "https://statsapi.mlb.com/api/v1/seasons?sportId=1&season=2024"
+
+    response = requests.get(url)
+    data = response.json()
+
+    regular_season_start_date = data['seasons'][0]['regularSeasonStartDate']
+
+    # regular_season_start_date = sa.latest_season()['regularSeasonStartDate']
+
     team_schedule = sa.schedule(
         team=playername[0]['currentTeam']['id'],
-        start_date=sa.latest_season()['regularSeasonStartDate'],
+        start_date=regular_season_start_date,
         end_date=today
     )
 
@@ -294,6 +304,10 @@ def head_to_head_mode(request):
     user_email = request.session.get("user", {}).get("email")
 
     return render(request, 'head_to_head_mode.html', {'todays_games': todays_games, 'user_email': user_email})
+
+
+def about_page(request):
+    return render(request, 'about_page.html', {'today': today})
 
 
 # make batting stat predictions based of manually input stats

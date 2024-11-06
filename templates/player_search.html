@@ -258,6 +258,15 @@
             color: black;
         }
 
+        .about button{
+            position: fixed;
+            width: 100px;
+            height: 50px;
+            bottom: 15px;
+            left: 15px;
+            border-radius: 5px 5px 5px 5px;
+        }
+
 
     </style>
 </head>
@@ -334,6 +343,10 @@
                 </tbody>
             </table>
         </div>
+    </div>
+
+    <div class="about">
+        <button type="button" onclick="redirect_about_page()">About</button>
     </div>
 
     <div class="mode_buttons">
@@ -495,6 +508,10 @@
 
         function redirect_logout() {
             window.location.href = '/logout';
+        }
+
+        function redirect_about_page() {
+            window.location.href = "{% url 'about' %}";
         }
 
         function redirect_head_to_head_mode() {

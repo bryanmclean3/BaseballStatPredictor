@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>About Baseball Stat Predictor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin-right: 200px;
+            margin-left: 200px;
+            padding: 2px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+            color: #0073e6;
+        }
+
+        h2 {
+            margin-top: 50px;
+            margin-bottom: 10px;
+            color: #0073e6;
+        }
+
+        h3 {
+            margin-top: 50px;
+            margin-bottom: 10px;
+            color: #0073e6;
+        }
+
+        button {
+            width: 100px;
+            height: 50px;
+            padding: 10px;
+            border: none;
+            background-color: #0073e6;
+            color: white;
+            border-radius: 5px 5px 5px 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+    </style>
+</head>
+<body>
+<h1>About</h1>
+<div>
+    The Baseball Stat Predictor is an app that predicts hitting and pitching stats for any player in the MLB.
+    The Baseball Stat Predictor also has a mode where any baseball player can manually enter in their past game
+    stats and the Baseball Stat Predictor will predict their next game stats. There are 2 competition modes, one where
+    users can predict the outcomes of future mlb matchups and another that allows users to predict game stats for any
+    player in the MLB.
+</div>
+
+<h3>Current Date of App: {{ today }}</h3>
+<div>
+    (Past date may be used for testing purposes)
+</div>
+
+<h2>About Me</h2>
+<div>
+    My name is Bryan McLean, and I am a Senior Software Engineering major at SUNY Oswego. I created this app
+    for CSC495 in Fall 2024.
+</div>
+
+<h2>Languages, APIs, & Tools</h2>
+<div>
+    This is all the technologies that I have used in the creation of this app.
+</div>
+<div>
+    <p><a href="https://github.com/toddrob99/MLB-StatsAPI">MLB-StatsAPI</a></p>
+    <p><a href="https://www.postgresql.org/">PostgreSQL</a></p>
+    <p><a href="https://www.docker.com/">Docker</a></p>
+    <p><a href="https://auth0.com/">Auth0</a></p>
+    <p><a href="https://www.djangoproject.com/">Django</a></p>
+</div>
+
+<div>
+    <button type="button" onclick="home_button()">Home</button>
+</div>
+<script>
+    function home_button() {
+        window.location.href = "{% url 'player_search' %}";
+    }
+</script>
+</body>
+</html>

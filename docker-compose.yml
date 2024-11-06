@@ -1,21 +1,43 @@
+version: "3.8"
+
 services:
   web:
     build: .
-    command: python /code/manage.py runserver 0.0.0.0:9821
+    command: >
+      sh -c "python manage.py migrate &&
+             gunicorn BaseballStatPredictor_project.wsgi:application --bind 0.0.0.0:39821 --timeout 120"
     volumes:
-      - .:/code
+      - .:/app
     ports:
-      - 9821:9821
+      - 39821:39821
     depends_on:
       - db
     env_file:
       - ./.env
-  db:
-    image: postgres:17
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
+    container_name: BaseballStatPredictor-web
     environment:
-      - "POSTGRES_HOST_AUTH_METHOD=trust"
+      - OPENBLAS_NUM_THREADS=1
+
+  db:
+    image: postgres:17-alpine
+    restart: always
+    container_name: Baseball-Stat-Predictor-db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+    ports:
+      - "39822:5432"
+
+  pgadmin:
+    container_name: pgadmin4_container_BaseballStatPredictor
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "39823:39823"
 
 volumes:
   postgres_data:

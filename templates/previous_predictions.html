@@ -243,7 +243,7 @@
         }
 
         .stats-table th, .stats-table td {
-            border: 1px solid #ddd;
+            border: 1px solid black;
             padding: 8px;
             text-align: center;
         }
@@ -442,7 +442,7 @@
                         const gameContainer = document.createElement("div");
                         gameContainer.classList.add("game-container");
 
-                        if (game.status && game.status === "Game has not finished") {
+                        if (game.status && game.status === "Game Has Not Finished") {
                             gameContainer.textContent = `${game.status}`;
                         } else if (game.status && game.status === "No Predictions Available") {
                             gameContainer.textContent = `${game.status}`;

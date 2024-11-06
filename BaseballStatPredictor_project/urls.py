@@ -32,6 +32,7 @@ urlpatterns = [
     path('player_stat_predictions/', views.player_stat_predictions, name='player_stat_predictions'),
     path('previous_predictions/', views.previous_predictions, name='previous_predictions'),
     path('view_predictions/', views.view_predictions, name='view_predictions'),
+    path('about/', views.about_page, name='about'),
     path("", views.search, name="search"),
     path("login/", views.login, name="login"),
     path("logout/", views.logout, name="logout"),
