@@ -6,7 +6,7 @@ import requests
 today = date.today().strftime("%Y-%m-%d")
 
 # Get Aaron Judge season stats
-playername = sa.lookup_player('aaron judge')
+playername = sa.lookup_player('juan soto')
 player = sa.player_stat_data(playername[0]['id'], 'hitting', 'season')
 
 two_hundred_days_away = (date.today() + timedelta(days=200)).strftime("%Y-%m-%d")

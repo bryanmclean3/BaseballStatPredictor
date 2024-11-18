@@ -1,5 +1,6 @@
 venv
 settings.py
+test_settings.py
 .env
 db.sqlite3
 *.pyc

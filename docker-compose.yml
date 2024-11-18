@@ -23,7 +23,8 @@ services:
     restart: always
     container_name: Baseball-Stat-Predictor-db
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+#      - postgres_data:/var/lib/postgresql/data
+      - /home/bmclean2/postgres_data:/var/lib/postgresql/data
     env_file:
       - .env
     ports:
@@ -37,7 +38,7 @@ services:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     ports:
-      - "39823:39823"
+      - "39823:80"
 
 volumes:
   postgres_data:

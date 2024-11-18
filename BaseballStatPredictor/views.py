@@ -24,6 +24,7 @@ import requests
 # today = date.today().strftime("%Y-%m-%d")
 today = '2024-08-21'
 
+
 # make API call to get players matching search query
 def search_mlb_players(query):
     players = sa.lookup_player(query)
@@ -168,12 +169,20 @@ def player_stat_prediction(player_id):
 
     if playername[0]['primaryPosition'][
         'abbreviation'] == 'P':  # or playername[0]['primaryPosition']['abbreviation'] == 'TWP':
-        with ThreadPoolExecutor() as executor:
-            try:
-                rows = list(
-                    executor.map(lambda game: fetch_pitcher_game_stats(game, player_id, playername), prev_games))
-            except HTTPError:
-                print("Error fetching")
+        # with ThreadPoolExecutor() as executor:
+        #     try:
+        #         rows = list(
+        #             executor.map(lambda game: fetch_pitcher_game_stats(game, player_id, playername), prev_games))
+        #     except HTTPError:
+        #         print("Error fetching")
+        rows = []
+        try:
+            for game in prev_games:
+                result = fetch_pitcher_game_stats(game, player_id, playername)
+                rows.append(result)
+        except HTTPError:
+            print("Error fetching")
+
         rows = [row for row in rows if row is not None]
 
         columns = ['Opponent', 'Innings Pitched', 'Hits Allowed', 'Runs Allowed', 'Earned Runs', 'Home Runs Allowed',
@@ -216,11 +225,19 @@ def player_stat_prediction(player_id):
                                             **dict(zip(columns[1:], predicted_stats_list[0]))}
 
     elif playername[0]['primaryPosition']['abbreviation'] != 'P':
-        with ThreadPoolExecutor() as executor:
-            try:
-                rows = list(executor.map(lambda game: fetch_batter_game_stats(game, player_id, playername), prev_games))
-            except HTTPError:
-                print("Error fetching")
+        # with ThreadPoolExecutor() as executor:
+        #     try:
+        #         rows = list(executor.map(lambda game: fetch_batter_game_stats(game, player_id, playername), prev_games))
+        #     except HTTPError:
+        #         print("Error fetching")
+
+        rows = []
+        try:
+            for game in prev_games:
+                result = fetch_batter_game_stats(game, player_id, playername)
+                rows.append(result)
+        except HTTPError:
+            print("Error fetching")
 
         rows = [row for row in rows if row is not None]
 
@@ -513,14 +530,24 @@ def view_predictions(request):
 
                         if player['innings_pitched'] is not None:
                             values = list()
-                            values.append(game_stats['pitching']['inningsPitched'])
-                            values.append(game_stats['pitching']['hits'])
-                            values.append(game_stats['pitching']['runs'])
-                            values.append(game_stats['pitching']['earnedRuns'])
-                            values.append(game_stats['pitching']['homeRuns'])
-                            values.append(game_stats['pitching']['baseOnBalls'])
-                            values.append(game_stats['pitching']['strikeOuts'])
-                            values.append(game_stats['pitching']['numberOfPitches'])
+                            if bool(game_stats['pitching']):
+                                values.append(game_stats['pitching']['inningsPitched'])
+                                values.append(game_stats['pitching']['hits'])
+                                values.append(game_stats['pitching']['runs'])
+                                values.append(game_stats['pitching']['earnedRuns'])
+                                values.append(game_stats['pitching']['homeRuns'])
+                                values.append(game_stats['pitching']['baseOnBalls'])
+                                values.append(game_stats['pitching']['strikeOuts'])
+                                values.append(game_stats['pitching']['numberOfPitches'])
+                            else:
+                                values.append(0)
+                                values.append(0)
+                                values.append(0)
+                                values.append(0)
+                                values.append(0)
+                                values.append(0)
+                                values.append(0)
+                                values.append(0)
 
                             keys = ['Innings Pitched', 'Hits Allowed', 'Runs Allowed', 'Earned Runs', 'Home Runs Allowed',
                                     'Walks', 'Strike Outs', 'Pitches Thrown']
@@ -530,14 +557,24 @@ def view_predictions(request):
                             PlayerStatResults.append(stats_dict)
                         else:
                             values = list()
-                            values.append(game_stats['batting']['runs'])
-                            values.append(game_stats['batting']['hits'])
-                            values.append(game_stats['batting']['doubles'])
-                            values.append(game_stats['batting']['triples'])
-                            values.append(game_stats['batting']['homeRuns'])
-                            values.append(game_stats['batting']['rbi'])
-                            values.append(game_stats['batting']['baseOnBalls'])
-                            values.append(game_stats['batting']['strikeOuts'])
+                            if bool(game_stats['batting']):
+                                values.append(game_stats['batting']['runs'])
+                                values.append(game_stats['batting']['hits'])
+                                values.append(game_stats['batting']['doubles'])
+                                values.append(game_stats['batting']['triples'])
+                                values.append(game_stats['batting']['homeRuns'])
+                                values.append(game_stats['batting']['rbi'])
+                                values.append(game_stats['batting']['baseOnBalls'])
+                                values.append(game_stats['batting']['strikeOuts'])
+                            else:
+                                values.append(0)
+                                values.append(0)
+                                values.append(0)
+                                values.append(0)
+                                values.append(0)
+                                values.append(0)
+                                values.append(0)
+                                values.append(0)
 
                             keys = ['Runs', 'Hits', 'Doubles', 'Triples', 'Home Runs', 'RBIs', 'Walks', 'Strike Outs']
 
