@@ -312,6 +312,67 @@
             border-radius: 5px 5px 5px 5px;
         }
 
+        .help button{
+            position: fixed;
+            width: 100px;
+            height: 50px;
+            bottom: 15px;
+            left: 15px;
+            border-radius: 5px 5px 5px 5px;
+        }
+
+        #helpPopup {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        #helpPopup .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 50%;
+            border-radius: 10px;
+            text-align: left;
+        }
+
+        #helpPopup .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        #helpPopup .close:hover,
+        #helpPopup .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        #helpPopup .modal-content ul {
+            display: block;
+            padding-left: 20px;
+            margin-left: 0;
+        }
+
+        #helpPopup .modal-content li {
+            text-align: left;
+            display: list-item;
+            padding: 5px 0;
+        }
+
+        #helpPopup .modal-content li b {
+            margin-right: 5px;
+        }
+
     </style>
 </head>
 <body>
@@ -400,6 +461,47 @@
         </div>
     </div>
 
+    <div class="help">
+        <button type="button" onclick="showHelp()">Help</button>
+    </div>
+
+    <div id="helpPopup" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeHelp()">&times;</span>
+            <h2>Player Stat Mode Help</h2>
+            <div>
+                The Player Stat Mode allows users to view predictions for any player's upcoming game and
+                create their own predictions for a player's stats. If the user is logged into the Baseball Stat
+                Predictor, they will have the ability to save their predictions to the database and review after
+                the game has been completed.
+            </div>
+            <h2>Player Stat Mode Guide:</h2>
+            <ul>
+                <li>Use the search bar to find MLB players.</li>
+                <li>Filter players by position or team using the dropdown menus.</li>
+                <li>Click on a player to view their predicted stats and save predictions (if logged in).</li>
+                <li>Click on the "View Previous Predictions" button to see past predictions.</li>
+            </ul>
+            <h2>Stats That You May See:</h2>
+            <ul>
+                <li><b>Opponent</b>= The team the player will be playing against</li>
+                <li><b>Runs</b>= The number of runs the player is predicted to score</li>
+                <li><b>Hits</b>= The number of hits a player is predicted to have</li>
+                <li><b>Doubles</b>= The number of doubles a player is predicted to have</li>
+                <li><b>Triples</b>= The number of triples a player is predicted to have</li>
+                <li><b>Home Runs</b>= The number of home runs a player is predicted to have</li>
+                <li><b>RBIs</b>= The number of runs that are predicted to be scored off plays by this player</li>
+                <li><b>Walks</b>= The number of walks a player is predicted to have</li>
+                <li><b>Strike Outs</b>= The number of strikeouts a player is predicted to have</li>
+                <li><b>Innings Pitched</b>= The number of innings a pitcher is predicted to pitch</li>
+                <li><b>Hits Allowed</b>= The number of hits a pitcher is predicted to allow</li>
+                <li><b>Runs Allowed</b>= The total number of runs a pitcher is predicted to allow</li>
+                <li><b>Earned Runs</b>= The number of runs a pitcher is predicted to allow without the aid of errors by the team</li>
+                <li><b>Home Runs Allowed</b>= The number of home runs a pitcher is predicted to allow</li>
+                <li><b>Pitches Thrown</b>= The number of pitches a pitcher is expected to throw</li>
+            </ul>
+        </div>
+    </div>
 
     <div class="mode_buttons">
         {% if user_email %}
@@ -607,6 +709,21 @@
                 loader.style.display = "none";
             });
 
+        }
+
+        function showHelp() {
+            document.getElementById("helpPopup").style.display = "block";
+        }
+
+        function closeHelp() {
+            document.getElementById("helpPopup").style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            var modal = document.getElementById("helpPopup");
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
         }
 
         function redirect_login() {

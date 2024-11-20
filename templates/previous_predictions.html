@@ -470,7 +470,11 @@
                                 // losingTeamButton.style.backgroundColor = "red";
                             }
 
+                            const vsLabel = document.createElement("span");
+                            vsLabel.textContent = " vs ";
+
                             gameContainer.appendChild(winningTeamButton);
+                            gameContainer.appendChild(vsLabel);
                             gameContainer.appendChild(losingTeamButton);
                         }
                         gamesContainer.appendChild(gameContainer);

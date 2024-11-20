@@ -23,9 +23,36 @@
 
         .game-container {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
             margin: 10px 0;
+        }
+
+        .team-labels {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .team-labels span {
+            width: 250px;
+            text-align: center;
+            font-weight: bold;
+            color: #0073e6;
+        }
+
+        .label {
+            font-weight: bold;
+            color: #0073e6;
+            width: 45%;
+            text-align: center;
+        }
+
+        .teams {
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         button {
@@ -33,9 +60,10 @@
             border: none;
             background-color: #0073e6;
             color: white;
-            border-radius: 5px 5px 5px 5px;
+            border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s;
+            margin: 0 10px;
         }
 
         button:hover {
@@ -57,7 +85,7 @@
 
         .team-button:hover {
             background-color: #0073e6;
-            color: white
+            color: white;
         }
 
         .team-button.selected {
@@ -169,12 +197,20 @@
 <body>
     <h1>Head-To-Head Mode</h1>
 
+    <div class="team-labels">
+        <span>Away Team</span>
+        <span>Home Team</span>
+    </div>
+
     <div class="games-container">
         {% if todays_games %}
             {% for away_team, home_team in todays_games %}
                 <div class="game-container">
-                    <button type="button" class="team-button" onclick="selectTeam('{{ away_team }}', '{{ forloop.counter }}')">{{ away_team }}</button>
-                    <button type="button" class="team-button" onclick="selectTeam('{{ home_team }}', '{{ forloop.counter }}')">{{ home_team }}</button>
+                    <div class="teams">
+                        <button type="button" class="team-button" onclick="selectTeam('{{ away_team }}', '{{ forloop.counter }}')">{{ away_team }}</button>
+                        vs
+                        <button type="button" class="team-button" onclick="selectTeam('{{ home_team }}', '{{ forloop.counter }}')">{{ home_team }}</button>
+                    </div>
                 </div>
             {% endfor %}
         {% else %}
